@@ -132,10 +132,14 @@ def generate_data_js(notes):
         with open(data_js_path, 'r', encoding='utf-8') as f:
             original_content = f.read()
             
-        # 提取 videos 数组
-        videos_match = re.search(r'videos:\s*\[(.*?)\]', original_content, re.DOTALL)
+        # 提取 videos 数组（改进的正则，使用字符类匹配到正确的闭合括号）
+        # 使用更复杂的模式来正确匹配嵌套的数组
+        videos_match = re.search(r'videos:\s*\[([\s\S]*)\]\s*\};', original_content)
         if videos_match:
-            js_code += videos_match.group(1)
+            # 获取 videos 数组的内容（不包括最后的 ]};）
+            videos_content = videos_match.group(1).strip()
+            if videos_content:
+                js_code += videos_content + '\n'
     
     js_code += '    ]\n'
     js_code += '};\n\n'
