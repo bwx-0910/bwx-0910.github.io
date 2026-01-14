@@ -66,11 +66,11 @@ if errorlevel 1 (
 REM 设置分支名称
 git branch -M main
 
-REM 添加远程仓库
-echo [信息] 添加远程仓库...
+REM 添加远程仓库（使用 SSH）
+echo [信息] 添加远程仓库（SSH方式）...
 git remote remove origin 2>nul
-git remote add origin https://github.com/%USERNAME%/%USERNAME%.github.io.git
-echo [完成] 远程仓库设置完成
+git remote add origin git@github.com:%USERNAME%/%USERNAME%.github.io.git
+echo [完成] 远程仓库设置完成（SSH）
 echo.
 
 REM 推送到 GitHub
