@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>读书笔记 & 视频分享</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="site-title">📚 读书笔记 & 视频分享</h1>
+                <p class="site-subtitle">记录阅读，分享知识</p>
+            </div>
+            <nav class="nav">
+                <a href="#" data-tab="all" class="nav-link active">全部</a>
+                <a href="#" data-tab="notes" class="nav-link">读书笔记</a>
+                <a href="#" data-tab="videos" class="nav-link">视频</a>
+                <a href="#" data-tab="about" class="nav-link">关于</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <!-- 全部内容 -->
+            <section id="all-section" class="content-section active">
+                <div class="posts-grid" id="all-posts"></div>
+            </section>
+
+            <!-- 读书笔记 -->
+            <section id="notes-section" class="content-section">
+                <div class="posts-grid" id="notes-posts"></div>
+            </section>
+
+            <!-- 视频 -->
+            <section id="videos-section" class="content-section">
+                <div class="videos-grid" id="videos-posts"></div>
+            </section>
+
+            <!-- 关于 -->
+            <section id="about-section" class="content-section">
+                <div class="about-card">
+                    <h2>关于本站</h2>
+                    <p>这是一个用于分享读书笔记和视频的个人网站。</p>
+                    <p>在这里，我记录阅读的感悟，分享有价值的视频内容。</p>
+                    <h3>联系方式</h3>
+                    <p>GitHub: <a href="https://github.com/你的用户名" target="_blank">@你的用户名</a></p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 读书笔记 & 视频分享. Built with ❤️</p>
+            <p>Powered by GitHub Pages</p>
+        </div>
+    </footer>
+
+    <!-- 文章详情模态框 -->
+    <div class="modal" id="postModal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
