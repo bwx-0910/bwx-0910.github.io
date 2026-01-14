@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>笔记管理后台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .setup-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .setup-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 400px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .note-list {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .note-item {
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .note-item:hover {
+            border-color: #667eea;
+            background: #f9f9ff;
+        }
+
+        .note-info {
+            flex: 1;
+        }
+
+        .note-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .note-meta {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .note-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 6px 15px;
+            font-size: 12px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #e7f3ff;
+            color: #0066cc;
+            border: 1px solid #b3d9ff;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .editor-section {
+            display: none;
+        }
+
+        .editor-section.active {
+            display: block;
+        }
+
+        .preview {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 笔记管理后台</h1>
+            <p>在线编辑和管理你的读书笔记</p>
+        </div>
+
+        <!-- GitHub 设置 -->
+        <div class="setup-section" id="setupSection">
+            <h2>⚙️ GitHub 配置</h2>
+            
+            <div class="alert alert-info">
+                <strong>首次使用需要配置</strong><br>
+                需要创建一个 GitHub Personal Access Token 才能在线编辑笔记。
+            </div>
+
+            <div class="form-group">
+                <label>GitHub 用户名</label>
+                <input type="text" id="githubUsername" value="bwx-0910" placeholder="你的 GitHub 用户名">
+            </div>
+
+            <div class="form-group">
+                <label>仓库名称</label>
+                <input type="text" id="repoName" value="bwx-0910.github.io" placeholder="仓库名">
+            </div>
+
+            <div class="form-group">
+                <label>Personal Access Token</label>
+                <input type="password" id="githubToken" placeholder="输入你的 GitHub Token">
+                <small style="color: #666; margin-top: 5px; display: block;">
+                    <a href="https://github.com/settings/tokens/new?scopes=repo&description=Blog%20Editor" target="_blank">
+                        点击这里生成 Token
+                    </a>（需要勾选 repo 权限）
+                </small>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
+            
+            <div style="margin-top: 20px;">
+                <h3>如何获取 Token？</h3>
+                <ol style="color: #666; line-height: 1.8; margin-left: 20px;">
+                    <li>访问 <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Tokens</a></li>
+                    <li>点击 "Generate new token (classic)"</li>
+                    <li>勾选 <strong>repo</strong> 权限</li>
+                    <li>生成并复制 Token</li>
+                    <li>粘贴到上面的输入框</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- 笔记列表 -->
+        <div class="note-list" id="noteList" style="display: none;">
+            <h2>📚 我的笔记</h2>
+            <button class="btn btn-primary" onclick="showEditor()">+ 新建笔记</button>
+            <div id="noteListContent" style="margin-top: 20px;"></div>
+        </div>
+
+        <!-- 编辑器 -->
+        <div class="editor-section" id="editorSection">
+            <div class="setup-section">
+                <h2 id="editorTitle">✏️ 编辑笔记</h2>
+
+                <div class="form-group">
+                    <label>标题</label>
+                    <input type="text" id="noteTitle" placeholder="《书名》读书笔记">
+                </div>
+
+                <div class="form-group">
+                    <label>图标 Emoji</label>
+                    <input type="text" id="noteIcon" value="📖" maxlength="2">
+                </div>
+
+                <div class="form-group">
+                    <label>分类</label>
+                    <input type="text" id="noteCategory" placeholder="如：心理学、历史、商业">
+                </div>
+
+                <div class="form-group">
+                    <label>标签（逗号分隔）</label>
+                    <input type="text" id="noteTags" placeholder="标签1, 标签2, 标签3">
+                </div>
+
+                <div class="form-group">
+                    <label>摘要</label>
+                    <textarea id="noteExcerpt" rows="3" placeholder="简短的摘要，100-200字..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>笔记内容（Markdown 格式）</label>
+                    <textarea id="noteContent" placeholder="在这里写你的笔记内容...&#10;&#10;支持 Markdown 语法：&#10;# 标题&#10;## 二级标题&#10;**粗体**&#10;*斜体*&#10;- 列表&#10;> 引用"></textarea>
+                </div>
+
+                <div>
+                    <button class="btn btn-primary" onclick="saveNote()">💾 保存笔记</button>
+                    <button class="btn btn-secondary" onclick="cancelEdit()">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentEditFile = null;
+
+        // 加载配置
+        function loadConfig() {
+            const config = localStorage.getItem('githubConfig');
+            if (config) {
+                const data = JSON.parse(config);
+                document.getElementById('githubUsername').value = data.username || 'bwx-0910';
+                document.getElementById('repoName').value = data.repo || 'bwx-0910.github.io';
+                document.getElementById('githubToken').value = data.token || '';
+                
+                if (data.token) {
+                    document.getElementById('setupSection').style.display = 'none';
+                    document.getElementById('noteList').style.display = 'block';
+                    loadNotes();
+                }
+            }
+        }
+
+        // 保存配置
+        function saveConfig() {
+            const username = document.getElementById('githubUsername').value;
+            const repo = document.getElementById('repoName').value;
+            const token = document.getElementById('githubToken').value;
+
+            if (!username || !repo || !token) {
+                alert('请填写所有字段');
+                return;
+            }
+
+            localStorage.setItem('githubConfig', JSON.stringify({
+                username: username,
+                repo: repo,
+                token: token
+            }));
+
+            alert('配置已保存！');
+            document.getElementById('setupSection').style.display = 'none';
+            document.getElementById('noteList').style.display = 'block';
+            loadNotes();
+        }
+
+        // 加载笔记列表
+        async function loadNotes() {
+            const config = JSON.parse(localStorage.getItem('githubConfig'));
+            const url = `https://api.github.com/repos/${config.username}/${config.repo}/contents/notes`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `token ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('无法加载笔记列表');
+                }
+
+                const files = await response.json();
+                const mdFiles = files.filter(f => 
+                    f.name.endsWith('.md') && 
+                    f.name !== '笔记模板.md' && 
+                    f.name !== 'README.md'
+                );
+
+                displayNotes(mdFiles);
+            } catch (error) {
+                alert('加载失败：' + error.message);
+                console.error(error);
+            }
+        }
+
+        // 显示笔记列表
+        function displayNotes(files) {
+            const container = document.getElementById('noteListContent');
+            
+            if (files.length === 0) {
+                container.innerHTML = '<p style="color: #666; padding: 20px;">还没有笔记，点击上面的按钮创建第一篇笔记吧！</p>';
+                return;
+            }
+
+            container.innerHTML = files.map(file => `
+                <div class="note-item">
+                    <div class="note-info">
+                        <div class="note-title">${file.name.replace('.md', '')}</div>
+                        <div class="note-meta">文件名: ${file.name}</div>
+                    </div>
+                    <div class="note-actions">
+                        <button class="btn btn-primary btn-small" onclick="editNote('${file.name}')">编辑</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 显示编辑器
+        function showEditor() {
+            document.getElementById('editorSection').classList.add('active');
+            document.getElementById('noteList').style.display = 'none';
+            document.getElementById('editorTitle').textContent = '✏️ 新建笔记';
+            
+            // 清空表单
+            document.getElementById('noteTitle').value = '';
+            document.getElementById('noteIcon').value = '📖';
+            document.getElementById('noteCategory').value = '';
+            document.getElementById('noteTags').value = '';
+            document.getElementById('noteExcerpt').value = '';
+            document.getElementById('noteContent').value = '';
+            currentEditFile = null;
+        }
+
+        // 编辑笔记
+        async function editNote(filename) {
+            const config = JSON.parse(localStorage.getItem('githubConfig'));
+            const url = `https://api.github.com/repos/${config.username}/${config.repo}/contents/notes/${filename}`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `token ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                const file = await response.json();
+                const content = atob(file.content);
+                
+                // 解析 Front Matter
+                const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+                if (match) {
+                    const frontmatter = match[1];
+                    const body = match[2];
+                    
+                    // 解析各个字段
+                    const title = frontmatter.match(/title:\s*(.+)/)?.[1] || '';
+                    const icon = frontmatter.match(/icon:\s*(.+)/)?.[1] || '📖';
+                    const category = frontmatter.match(/category:\s*(.+)/)?.[1] || '';
+                    const tags = frontmatter.match(/tags:\s*(.+)/)?.[1] || '';
+                    const excerpt = frontmatter.match(/excerpt:\s*(.+)/)?.[1] || '';
+                    
+                    document.getElementById('noteTitle').value = title;
+                    document.getElementById('noteIcon').value = icon;
+                    document.getElementById('noteCategory').value = category;
+                    document.getElementById('noteTags').value = tags;
+                    document.getElementById('noteExcerpt').value = excerpt;
+                    document.getElementById('noteContent').value = body.trim();
+                }
+                
+                currentEditFile = {
+                    name: filename,
+                    sha: file.sha
+                };
+                
+                document.getElementById('editorSection').classList.add('active');
+                document.getElementById('noteList').style.display = 'none';
+                document.getElementById('editorTitle').textContent = '✏️ 编辑笔记: ' + filename;
+                
+            } catch (error) {
+                alert('加载笔记失败：' + error.message);
+            }
+        }
+
+        // 保存笔记
+        async function saveNote() {
+            const title = document.getElementById('noteTitle').value;
+            const icon = document.getElementById('noteIcon').value;
+            const category = document.getElementById('noteCategory').value;
+            const tags = document.getElementById('noteTags').value;
+            const excerpt = document.getElementById('noteExcerpt').value;
+            const content = document.getElementById('noteContent').value;
+
+            if (!title || !content) {
+                alert('请至少填写标题和内容');
+                return;
+            }
+
+            // 生成完整的 Markdown 内容
+            const today = new Date().toISOString().split('T')[0];
+            const fullContent = `---
+title: ${title}
+icon: ${icon}
+date: ${today}
+category: ${category}
+tags: ${tags}
+excerpt: ${excerpt}
+---
+
+${content}`;
+
+            // 生成文件名
+            const filename = currentEditFile ? currentEditFile.name : 
+                            (title.replace(/[《》]/g, '').replace(/\s+/g, '-') + '.md');
+
+            const config = JSON.parse(localStorage.getItem('githubConfig'));
+            const url = `https://api.github.com/repos/${config.username}/${config.repo}/contents/notes/${filename}`;
+
+            try {
+                const data = {
+                    message: currentEditFile ? `更新笔记: ${filename}` : `新建笔记: ${filename}`,
+                    content: btoa(unescape(encodeURIComponent(fullContent))),
+                    branch: 'main'
+                };
+
+                if (currentEditFile) {
+                    data.sha = currentEditFile.sha;
+                }
+
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error('保存失败');
+                }
+
+                alert('✅ 保存成功！\n\n请等待 1-2 分钟让 GitHub Pages 构建完成。');
+                cancelEdit();
+                loadNotes();
+                
+            } catch (error) {
+                alert('保存失败：' + error.message);
+                console.error(error);
+            }
+        }
+
+        // 取消编辑
+        function cancelEdit() {
+            document.getElementById('editorSection').classList.remove('active');
+            document.getElementById('noteList').style.display = 'block';
+            currentEditFile = null;
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('load', loadConfig);
+    </script>
+</body>
+</html>
