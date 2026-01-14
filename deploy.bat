@@ -24,13 +24,10 @@ if errorlevel 1 (
 echo [信息] Git 已安装
 echo.
 
-REM 询问 GitHub 用户名
-set /p USERNAME="请输入你的 GitHub 用户名: "
-if "%USERNAME%"=="" (
-    echo [错误] 用户名不能为空
-    pause
-    exit /b 1
-)
+REM GitHub 用户名（已预设）
+set USERNAME=bwx-0910
+
+echo [信息] GitHub 用户名: %USERNAME%
 
 echo.
 echo ========================================
