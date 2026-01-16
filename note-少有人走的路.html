@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>少有人走的路[读书笔记] - 读书笔记</title>
+    <title>少有人走的路 - 读书笔记</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/note-style.css">
     <!-- Markdown 渲染 -->
@@ -21,24 +21,34 @@
         <article class="note-article">
             <header class="note-header">
                 <div class="note-icon">📖</div>
-                <h1 class="note-title">少有人走的路[读书笔记]</h1>
+                <h1 class="note-title">少有人走的路</h1>
                 <div class="note-meta">
                     <span class="meta-item">📅 2026-01-16</span>
                     <span class="meta-item">📂 心理学</span>
                 </div>
                 <div class="note-tags">
-                    <span class="tag">#excerpt: 123213</span>
+                    
                 </div>
             </header>
 
-            <!-- 书籍摘录区 -->
-            <div class="quotes-section" id="quotesSection">
-                <h2>📌 书籍摘录</h2><div class="quotes-grid"><div class="quote-card quote-color-1"><p>许多患者在治疗之初，就告诉我：“我不信教，从来不去教堂。我不相信教会的训诫，也不相信父母的话。我不像父母那样对宗教信仰过于虔诚。我大概永远与信仰无缘。”每当我质疑他们凭什么自认为与信仰无缘时，他们都很惊讶。“其实你是有信仰的。你的信仰博大精深，因为你崇拜真理。你坚信自己会不断进步。”我对他们说，“你的信仰所具有的力量，使你敢于承受一切痛苦、一切摆脱既往经验和迎接未来挑战的痛苦。能够接受治疗，本身就说明你重视进步。你所做的一切，都是为了你的信仰。我绝不认为你比父母缺乏虔诚，正相反，我甚至觉得和他们相比，你的信仰更具神性，有着更高的境界，因为你具有质疑一切的勇气。”</p></div><div class="quote-card quote-color-2"><p>他们或许能够咬紧牙关，踏上短暂的心智成熟之路，甚至走过相当长的距离，但终归难以走完全程。心灵之旅过于艰难，使他们只满足于做普通人。</p></div><div class="quote-card quote-color-3"><p>人生唯一的安全感，来自于充分体验人生的不安全感。</p></div><div class="quote-card quote-color-4"><p>有的心理医生发现，病人在视觉上会出现一种奇怪的现象：这些病人只能看见正前方一片非常狭窄的范围，上下左右全都无法看到。他们不能同时看见并排放置的两件东西，一定要偏转头才能看得见另一件东西。这就像透过隧道或一根管子看东西一样，只看见一个小圈子里的事物。这种人没有任何生理上的视力疾病，而是在心理上自己给自己设置了限制。科学家之所以会把洗澡水和婴儿一起泼掉，一个重要原因是他们患了管窥症，没有看见那个婴儿。如果我们能以开放的心态对待事物，就会感受到身边处处有奇迹。</p></div></div>
+            <!-- 标签导航 -->
+            <div class="note-tabs">
+                <button class="tab-btn active" onclick="switchTab('quotes')">📌 书籍摘录</button>
+                <button class="tab-btn" onclick="switchTab('notes')">📝 笔记内容</button>
             </div>
 
-            <!-- 笔记内容 -->
-            <div class="note-content" id="noteContent">
-                <p>阅读中</p>
+            <!-- 书籍摘录标签页 -->
+            <div class="tab-content active" id="quotesTab">
+                <div class="quotes-section">
+                    <h2>📌 书籍摘录</h2><div class="quotes-grid"><div class="quote-card quote-color-1"><p>许多患者在治疗之初，就告诉我：“我不信教，从来不去教堂。我不相信教会的训诫，也不相信父母的话。我不像父母那样对宗教信仰过于虔诚。我大概永远与信仰无缘。”每当我质疑他们凭什么自认为与信仰无缘时，他们都很惊讶。“其实你是有信仰的。你的信仰博大精深，因为你崇拜真理。你坚信自己会不断进步。”我对他们说，“你的信仰所具有的力量，使你敢于承受一切痛苦、一切摆脱既往经验和迎接未来挑战的痛苦。能够接受治疗，本身就说明你重视进步。你所做的一切，都是为了你的信仰。我绝不认为你比父母缺乏虔诚，正相反，我甚至觉得和他们相比，你的信仰更具神性，有着更高的境界，因为你具有质疑一切的勇气。”</p></div><div class="quote-card quote-color-2"><p>他们或许能够咬紧牙关，踏上短暂的心智成熟之路，甚至走过相当长的距离，但终归难以走完全程。心灵之旅过于艰难，使他们只满足于做普通人。</p></div><div class="quote-card quote-color-3"><p>人生唯一的安全感，来自于充分体验人生的不安全感。</p></div><div class="quote-card quote-color-4"><p>有的心理医生发现，病人在视觉上会出现一种奇怪的现象：这些病人只能看见正前方一片非常狭窄的范围，上下左右全都无法看到。他们不能同时看见并排放置的两件东西，一定要偏转头才能看得见另一件东西。这就像透过隧道或一根管子看东西一样，只看见一个小圈子里的事物。这种人没有任何生理上的视力疾病，而是在心理上自己给自己设置了限制。科学家之所以会把洗澡水和婴儿一起泼掉，一个重要原因是他们患了管窥症，没有看见那个婴儿。如果我们能以开放的心态对待事物，就会感受到身边处处有奇迹。</p></div></div>
+                </div>
+            </div>
+
+            <!-- 笔记内容标签页 -->
+            <div class="tab-content" id="notesTab">
+                <div class="note-content">
+                    <p>1</p>
+                </div>
             </div>
         </article>
 
@@ -49,19 +59,30 @@
     </div>
 
     <script>
-        // 渲染 Markdown 内容
-        document.addEventListener('DOMContentLoaded', function() {
-            const contentDiv = document.getElementById('noteContent');
-            if (typeof marked !== 'undefined' && contentDiv) {
-                marked.setOptions({
-                    breaks: true,
-                    gfm: true,
-                    highlight: function(code, lang) {
-                        return code;
-                    }
-                });
-                // contentDiv.innerHTML = marked.parse(contentDiv.textContent);
+        // 标签切换功能
+        function switchTab(tabName) {
+            // 移除所有活动状态
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 激活选中的标签
+            if (tabName === 'quotes') {
+                document.querySelector('[onclick="switchTab(\'quotes\')"]').classList.add('active');
+                document.getElementById('quotesTab').classList.add('active');
+            } else if (tabName === 'notes') {
+                document.querySelector('[onclick="switchTab(\'notes\')"]').classList.add('active');
+                document.getElementById('notesTab').classList.add('active');
             }
+        }
+
+        // 页面加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            // 默认显示书籍摘录标签
+            switchTab('quotes');
         });
     </script>
 </body>

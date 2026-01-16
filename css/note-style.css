@@ -88,6 +88,7 @@
     font-size: 1.1rem;
     line-height: 2;
     color: #333;
+    padding: 2rem 0;
 }
 
 .note-content h1,
@@ -232,9 +233,64 @@
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+/* 标签导航 */
+.note-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 0;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+    position: relative;
+    bottom: -2px;
+}
+
+.tab-btn:hover {
+    color: #667eea;
+    background: #f8f9fa;
+}
+
+.tab-btn.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    background: #f8f9fa;
+}
+
+/* 标签内容 */
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* 书籍摘录区域 */
 .quotes-section {
-    margin-bottom: 3rem;
+    padding: 2rem 0;
 }
 
 .quotes-section h2 {

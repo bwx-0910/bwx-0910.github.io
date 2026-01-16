@@ -6,14 +6,14 @@ const postsData = {
     notes: [
         {
             id: 'note-少有人走的路',
-            title: '少有人走的路[读书笔记]',
+            title: '少有人走的路',
             icon: '📖',
             date: '2026-01-16',
             category: '心理学',
-            tags: ["excerpt: 123213"],
+            tags: [],
             excerpt: '123213',
             content: `
-阅读中
+1
             `
         }
     ],

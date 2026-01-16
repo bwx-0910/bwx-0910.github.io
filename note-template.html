@@ -31,14 +31,24 @@
                 </div>
             </header>
 
-            <!-- 书籍摘录区 -->
-            <div class="quotes-section" id="quotesSection">
-                {{QUOTES}}
+            <!-- 标签导航 -->
+            <div class="note-tabs">
+                <button class="tab-btn active" onclick="switchTab('quotes')">📌 书籍摘录</button>
+                <button class="tab-btn" onclick="switchTab('notes')">📝 笔记内容</button>
             </div>
 
-            <!-- 笔记内容 -->
-            <div class="note-content" id="noteContent">
-                {{CONTENT}}
+            <!-- 书籍摘录标签页 -->
+            <div class="tab-content active" id="quotesTab">
+                <div class="quotes-section">
+                    {{QUOTES}}
+                </div>
+            </div>
+
+            <!-- 笔记内容标签页 -->
+            <div class="tab-content" id="notesTab">
+                <div class="note-content">
+                    {{CONTENT}}
+                </div>
             </div>
         </article>
 
@@ -49,19 +59,30 @@
     </div>
 
     <script>
-        // 渲染 Markdown 内容
-        document.addEventListener('DOMContentLoaded', function() {
-            const contentDiv = document.getElementById('noteContent');
-            if (typeof marked !== 'undefined' && contentDiv) {
-                marked.setOptions({
-                    breaks: true,
-                    gfm: true,
-                    highlight: function(code, lang) {
-                        return code;
-                    }
-                });
-                // contentDiv.innerHTML = marked.parse(contentDiv.textContent);
+        // 标签切换功能
+        function switchTab(tabName) {
+            // 移除所有活动状态
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 激活选中的标签
+            if (tabName === 'quotes') {
+                document.querySelector('[onclick="switchTab(\'quotes\')"]').classList.add('active');
+                document.getElementById('quotesTab').classList.add('active');
+            } else if (tabName === 'notes') {
+                document.querySelector('[onclick="switchTab(\'notes\')"]').classList.add('active');
+                document.getElementById('notesTab').classList.add('active');
             }
+        }
+
+        // 页面加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            // 默认显示书籍摘录标签
+            switchTab('quotes');
         });
     </script>
 </body>
