@@ -1,61 +1,45 @@
 name: Auto Build Data.js
 
-# 当 notes 文件夹有变化时自动触发
 on:
   push:
-    paths:
-      - 'notes/**/*.md'
     branches:
       - main
-
-# 设置权限
-permissions:
-  contents: write
+    paths:
+      - 'notes/**/*.md'  # 当 notes 目录下的 md 文件改变时触发
 
 jobs:
   build:
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: write  # 授予写入权限
+
     steps:
-    - name: 📥 检出代码
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    
-    - name: 🐍 设置 Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-    
-    - name: 📦 安装依赖
-      run: |
-        pip install python-dotenv
-    
-    - name: 🔨 构建 data.js
-      run: |
-        cd ${{ github.workspace }}
-        python build.py
-    
-    - name: 📤 提交更改
-      run: |
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
-        
-        # 检查是否有变化
-        if [[ -n $(git status -s) ]]; then
-          git add js/data.js
-          git commit -m "🤖 自动构建: 更新 data.js [skip ci]"
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2  # 获取最近两次提交，用于检测变化
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install markdown
+
+      - name: Build data.js
+        run: |
+          cd blog
+          python build.py
+
+      - name: Commit and Push changes
+        run: |
+          cd blog
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add js/data.js note-*.html
+          git diff --staged --quiet || git commit -m "🤖 自动构建: 更新 data.js 和笔记页面 [skip ci]"
           git push
-          echo "✅ data.js 已更新并推送"
-        else
-          echo "ℹ️ 没有变化需要提交"
-        fi
-    
-    - name: 🎉 完成
-      run: |
-        echo "================================"
-        echo "✅ 自动构建完成！"
-        echo "================================"
-        echo "data.js 已自动更新"
-        echo "博客将在 1-2 分钟后更新"
-        echo "================================"
