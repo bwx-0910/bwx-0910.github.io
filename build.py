@@ -88,6 +88,7 @@ def convert_poems_to_js():
                 'id': 'poem-' + md_file.stem.lower().replace(' ', '-'),
                 'source': frontmatter.get('source', '未知'),
                 'date': frontmatter.get('date', datetime.now().strftime('%Y-%m-%d')),
+                'image': frontmatter.get('image', ''),
                 'content': poem_content.strip()
             }
             
@@ -213,6 +214,7 @@ def generate_data_js(notes, poems):
         js_code += f"            id: '{poem['id']}',\n"
         js_code += f"            source: '{escape_js_string(poem['source'])}',\n"
         js_code += f"            date: '{poem['date']}',\n"
+        js_code += f"            image: '{escape_js_string(poem['image'])}',\n"
         js_code += f"            content: `{escape_js_string(poem['content'])}`\n"
         js_code += '        }'
         

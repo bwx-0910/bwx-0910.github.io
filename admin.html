@@ -346,6 +346,21 @@
                     <input type="text" id="poemSource" placeholder="静夜思">
                 </div>
 
+                <div class="form-group">
+                    <label>
+                        配图（可选）
+                        <span style="color: #999; font-size: 12px; font-weight: normal;">
+                            点击或拖拽上传图片
+                        </span>
+                    </label>
+                    <div id="poemImageUpload" style="border: 2px dashed #ddd; padding: 20px; text-align: center; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                        <span id="poemImagePlaceholder">📷 点击选择图片</span>
+                        <img id="poemImagePreview" style="max-width: 100%; max-height: 300px; display: none; margin-top: 10px; border-radius: 8px;">
+                        <input type="file" id="poemImageInput" accept="image/*" style="display: none;">
+                        <input type="hidden" id="poemImageUrl">
+                    </div>
+                </div>
+
                 <div>
                     <button class="btn btn-primary" onclick="savePoem()">💾 保存诗句</button>
                     <button class="btn btn-secondary" onclick="cancelPoemEdit()">取消</button>
@@ -437,7 +452,7 @@
         function initQuillEditor() {
             quill = new Quill('#editor', {
                 theme: 'snow',
-                placeholder: '开始写笔记吧...\n\n💡 提示：使用引用格式（引号按钮）来标记摘录的句子',
+                placeholder: '开始写笔记吧...\n\n💡 提示：可以直接粘贴图片（Ctrl+V）',
                 modules: {
                     toolbar: [
                         // 格式化
@@ -450,6 +465,9 @@
                         // 列表
                         [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                         
+                        // 图片和链接
+                        ['image', 'link'],
+                        
                         // 颜色和背景（突出重点）
                         [{ 'color': [] }, { 'background': [] }],
                         
@@ -461,6 +479,14 @@
                     ]
                 }
             });
+
+            // 监听粘贴事件
+            const editor = document.querySelector('#editor .ql-editor');
+            editor.addEventListener('paste', handlePaste, false);
+
+            // 覆盖图片按钮的默认行为
+            const toolbar = quill.getModule('toolbar');
+            toolbar.addHandler('image', selectLocalImage);
 
             // 添加自定义样式让引用更美观
             const style = document.createElement('style');
@@ -1032,8 +1058,118 @@ ${content}`;
             
             document.getElementById('poemContent').value = '';
             document.getElementById('poemSource').value = '';
+            document.getElementById('poemImageUrl').value = '';
+            document.getElementById('poemImagePreview').style.display = 'none';
+            document.getElementById('poemImagePlaceholder').style.display = 'inline';
             
             currentEditPoem = null;
+        }
+
+        // 诗句图片上传处理
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('poemImageUpload');
+            const fileInput = document.getElementById('poemImageInput');
+            const preview = document.getElementById('poemImagePreview');
+            const placeholder = document.getElementById('poemImagePlaceholder');
+            const imageUrlInput = document.getElementById('poemImageUrl');
+
+            // 点击上传区域
+            uploadArea.onclick = () => fileInput.click();
+
+            // 文件选择
+            fileInput.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    await uploadPoemImage(file);
+                }
+            };
+
+            // 拖拽上传
+            uploadArea.ondragover = (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#667eea';
+                uploadArea.style.background = '#f9f9ff';
+            };
+
+            uploadArea.ondragleave = (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#ddd';
+                uploadArea.style.background = 'white';
+            };
+
+            uploadArea.ondrop = async (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#ddd';
+                uploadArea.style.background = 'white';
+                
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    await uploadPoemImage(file);
+                }
+            };
+        });
+
+        // 上传诗句配图
+        async function uploadPoemImage(file) {
+            const config = JSON.parse(localStorage.getItem('githubConfig'));
+            if (!config || !config.token) {
+                alert('请先配置 GitHub');
+                return;
+            }
+
+            const placeholder = document.getElementById('poemImagePlaceholder');
+            const preview = document.getElementById('poemImagePreview');
+            const imageUrlInput = document.getElementById('poemImageUrl');
+
+            placeholder.textContent = '上传中...';
+
+            try {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64Data = e.target.result.split(',')[1];
+                    const timestamp = Date.now();
+                    const filename = `poem-${timestamp}-${file.name}`;
+                    const url = `https://api.github.com/repos/${config.username}/${config.repo}/contents/images/${filename}`;
+
+                    try {
+                        const response = await fetch(url, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `token ${config.token}`,
+                                'Accept': 'application/vnd.github.v3+json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                message: `上传诗句配图: ${filename}`,
+                                content: base64Data,
+                                branch: 'main'
+                            })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('上传失败');
+                        }
+
+                        const imageUrl = `https://raw.githubusercontent.com/${config.username}/${config.repo}/main/images/${filename}`;
+                        
+                        // 显示预览
+                        preview.src = imageUrl;
+                        preview.style.display = 'block';
+                        placeholder.style.display = 'none';
+                        imageUrlInput.value = imageUrl;
+
+                        console.log('图片上传成功:', imageUrl);
+                    } catch (error) {
+                        placeholder.textContent = '📷 上传失败，点击重试';
+                        alert('图片上传失败：' + error.message);
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+            } catch (error) {
+                placeholder.textContent = '📷 点击选择图片';
+                alert('读取图片失败：' + error.message);
+            }
         }
 
         // 编辑诗句
@@ -1059,9 +1195,17 @@ ${content}`;
                     const body = match[2];
                     
                     const source = frontmatter.match(/source:\s*(.+)/)?.[1] || '';
+                    const image = frontmatter.match(/image:\s*(.+)/)?.[1] || '';
                     
                     document.getElementById('poemContent').value = body.trim();
                     document.getElementById('poemSource').value = source;
+                    
+                    if (image) {
+                        document.getElementById('poemImageUrl').value = image;
+                        document.getElementById('poemImagePreview').src = image;
+                        document.getElementById('poemImagePreview').style.display = 'block';
+                        document.getElementById('poemImagePlaceholder').style.display = 'none';
+                    }
                 }
                 
                 currentEditPoem = {
@@ -1082,6 +1226,7 @@ ${content}`;
         async function savePoem() {
             const content = document.getElementById('poemContent').value.trim();
             const source = document.getElementById('poemSource').value.trim();
+            const imageUrl = document.getElementById('poemImageUrl').value.trim();
 
             if (!content || !source) {
                 alert('请填写诗句内容和出处');
@@ -1089,12 +1234,15 @@ ${content}`;
             }
 
             const today = new Date().toISOString().split('T')[0];
-            const fullContent = `---
+            let fullContent = `---
 source: ${source}
-date: ${today}
----
-
-${content}`;
+date: ${today}`;
+            
+            if (imageUrl) {
+                fullContent += `\nimage: ${imageUrl}`;
+            }
+            
+            fullContent += `\n---\n\n${content}`;
 
             const filename = currentEditPoem ? currentEditPoem.name : 
                             (source.replace(/[《》]/g, '').replace(/\s+/g, '-') + '.md');
@@ -1197,6 +1345,110 @@ ${content}`;
             
             document.getElementById('poemContent').value = '';
             document.getElementById('poemSource').value = '';
+        }
+
+        // 处理粘贴事件（支持粘贴图片）
+        function handlePaste(e) {
+            const clipboardData = e.clipboardData || window.clipboardData;
+            const items = clipboardData.items;
+
+            if (!items) return;
+
+            // 查找图片
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    e.preventDefault();
+                    const blob = items[i].getAsFile();
+                    uploadImageToGitHub(blob);
+                    return;
+                }
+            }
+        }
+
+        // 选择本地图片（点击图片按钮）
+        function selectLocalImage() {
+            const input = document.createElement('input');
+            input.setAttribute('type', 'file');
+            input.setAttribute('accept', 'image/*');
+            input.click();
+
+            input.onchange = () => {
+                const file = input.files[0];
+                if (file) {
+                    uploadImageToGitHub(file);
+                }
+            };
+        }
+
+        // 上传图片到 GitHub
+        async function uploadImageToGitHub(file) {
+            const config = JSON.parse(localStorage.getItem('githubConfig'));
+            if (!config || !config.token) {
+                alert('请先配置 GitHub');
+                return;
+            }
+
+            // 显示上传中提示
+            const range = quill.getSelection(true);
+            quill.insertText(range.index, '上传图片中...', 'user');
+
+            try {
+                // 读取文件为 Base64
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64Data = e.target.result.split(',')[1];
+                    
+                    // 生成文件名（时间戳 + 原文件名）
+                    const timestamp = Date.now();
+                    const filename = `${timestamp}-${file.name}`;
+                    const url = `https://api.github.com/repos/${config.username}/${config.repo}/contents/images/${filename}`;
+
+                    try {
+                        // 上传到 GitHub
+                        const response = await fetch(url, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `token ${config.token}`,
+                                'Accept': 'application/vnd.github.v3+json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                message: `上传图片: ${filename}`,
+                                content: base64Data,
+                                branch: 'main'
+                            })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('上传失败');
+                        }
+
+                        const result = await response.json();
+                        
+                        // 获取图片的访问 URL
+                        const imageUrl = `https://raw.githubusercontent.com/${config.username}/${config.repo}/main/images/${filename}`;
+                        
+                        // 删除"上传中"文本
+                        quill.deleteText(range.index, 10);
+                        
+                        // 插入图片
+                        quill.insertEmbed(range.index, 'image', imageUrl);
+                        quill.setSelection(range.index + 1);
+
+                        console.log('图片上传成功:', imageUrl);
+                    } catch (error) {
+                        // 删除"上传中"文本
+                        quill.deleteText(range.index, 10);
+                        alert('图片上传失败：' + error.message);
+                        console.error(error);
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+            } catch (error) {
+                alert('读取图片失败：' + error.message);
+                console.error(error);
+            }
         }
 
         // 页面加载时初始化

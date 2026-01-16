@@ -440,6 +440,15 @@ body {
     transition: all 0.3s;
     border-left: 5px solid #e17055;
     position: relative;
+    overflow: hidden;
+}
+
+.poem-image {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 20px;
 }
 
 .poem-card::before {

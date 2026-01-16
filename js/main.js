@@ -103,6 +103,7 @@ function renderPoems(containerId, poems) {
 
     container.innerHTML = poems.map(poem => `
         <div class="poem-card">
+            ${poem.image ? `<img src="${poem.image}" alt="${poem.source}" class="poem-image">` : ''}
             <div class="poem-quote">${poem.content}</div>
             <div class="poem-source">——《${poem.source}》</div>
         </div>
