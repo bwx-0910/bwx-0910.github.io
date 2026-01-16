@@ -5,7 +5,8 @@ on:
     branches:
       - main
     paths:
-      - 'notes/**/*.md'  # 当 notes 目录下的 md 文件改变时触发
+      - 'notes/**/*.md'   # 当 notes 目录下的 md 文件改变时触发
+      - 'poems/**/*.md'   # 当 poems 目录下的 md 文件改变时触发
 
 jobs:
   build:
