@@ -10,6 +10,7 @@ import re
 import json
 import sys
 import random
+import time
 from pathlib import Path
 from datetime import datetime
 import markdown
@@ -18,6 +19,9 @@ import markdown
 if sys.platform.startswith('win'):
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
+# 生成版本号（基于时间戳）
+BUILD_VERSION = str(int(time.time()))
 
 def parse_frontmatter(content):
     """解析 Markdown 文件的 Front Matter"""
@@ -225,6 +229,7 @@ def generate_note_html(note):
     html = html.replace('{{TAGS}}', tags_html)
     html = html.replace('{{QUOTES}}', quotes_html)
     html = html.replace('{{CONTENT}}', html_content)
+    html = html.replace('{{VERSION}}', BUILD_VERSION)
     
     # 生成文件名
     filename = f"note-{note['filename']}.html"
@@ -236,13 +241,32 @@ def generate_note_html(note):
     
     print(f'  📄 已生成: {filename}')
 
+def update_index_version():
+    """更新 index.html 中的版本号"""
+    index_path = Path('index.html')
+    if not index_path.exists():
+        return
+    
+    with open(index_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # 替换版本号
+    content = re.sub(r'\?v=\d+', f'?v={BUILD_VERSION}', content)
+    
+    with open(index_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+    
+    print(f'✅ 已更新 index.html 版本号: {BUILD_VERSION}')
+
 if __name__ == '__main__':
     print('='*50)
     print('📚 Markdown 笔记转换工具')
     print('='*50)
+    print(f'🔖 构建版本: {BUILD_VERSION}')
     print()
     
     convert_notes_to_js()
+    update_index_version()
     
     print()
     print('='*50)
