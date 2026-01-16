@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>少有人走的路 - 读书笔记</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/note-style.css">
+    <!-- Markdown 渲染 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 返回导航 -->
+        <nav class="note-nav">
+            <a href="index.html" class="back-link">← 返回首页</a>
+            <a href="admin.html" class="admin-link">✏️ 编辑</a>
+        </nav>
+
+        <!-- 笔记头部 -->
+        <article class="note-article">
+            <header class="note-header">
+                <div class="note-icon">📖</div>
+                <h1 class="note-title">少有人走的路</h1>
+                <div class="note-meta">
+                    <span class="meta-item">📅 2026-01-14</span>
+                    <span class="meta-item">📂 心理学</span>
+                </div>
+                <div class="note-tags">
+                    
+                </div>
+            </header>
+
+            <!-- 笔记内容 -->
+            <div class="note-content" id="noteContent">
+                <p>123123</p>
+            </div>
+        </article>
+
+        <!-- 底部导航 -->
+        <footer class="note-footer">
+            <a href="index.html" class="btn-back">← 返回首页</a>
+        </footer>
+    </div>
+
+    <script>
+        // 渲染 Markdown 内容
+        document.addEventListener('DOMContentLoaded', function() {
+            const contentDiv = document.getElementById('noteContent');
+            if (typeof marked !== 'undefined' && contentDiv) {
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    highlight: function(code, lang) {
+                        return code;
+                    }
+                });
+                // contentDiv.innerHTML = marked.parse(contentDiv.textContent);
+            }
+        });
+    </script>
+</body>
+</html>

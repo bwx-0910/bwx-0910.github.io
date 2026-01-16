@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Markdown 笔记转换脚本
-将 notes/*.md 文件自动转换为 data.js
+将 notes/*.md 文件自动转换为 data.js 和独立的 HTML 页面
 """
 
 import os
@@ -10,6 +10,7 @@ import re
 import json
 from pathlib import Path
 from datetime import datetime
+import markdown
 
 def parse_frontmatter(content):
     """解析 Markdown 文件的 Front Matter"""
@@ -32,7 +33,7 @@ def parse_frontmatter(content):
     return frontmatter, markdown_content
 
 def convert_notes_to_js():
-    """转换所有笔记文件为 JavaScript 数据"""
+    """转换所有笔记文件为 JavaScript 数据和独立 HTML 页面"""
     notes_dir = Path('notes')
     
     if not notes_dir.exists():
@@ -73,10 +74,15 @@ def convert_notes_to_js():
                 'category': frontmatter.get('category', '未分类'),
                 'tags': [tag.strip() for tag in frontmatter.get('tags', '').split(',') if tag.strip()],
                 'excerpt': frontmatter.get('excerpt', ''),
-                'content': markdown_content.strip()
+                'content': markdown_content.strip(),
+                'filename': md_file.stem
             }
             
             notes.append(note)
+            
+            # 生成独立的 HTML 页面
+            generate_note_html(note)
+            
             print(f'  ✅ 成功')
             
         except Exception as e:
@@ -151,6 +157,49 @@ def generate_data_js(notes):
         f.write(js_code)
     
     print(f'📄 已生成: js/data.js')
+
+def generate_note_html(note):
+    """为每篇笔记生成独立的 HTML 页面"""
+    
+    # 读取模板
+    template_path = Path('note-template.html')
+    if not template_path.exists():
+        print(f'  ⚠️  模板文件不存在: note-template.html')
+        return
+    
+    with open(template_path, 'r', encoding='utf-8') as f:
+        template = f.read()
+    
+    # 转换 Markdown 为 HTML
+    try:
+        html_content = markdown.markdown(
+            note['content'],
+            extensions=['extra', 'codehilite', 'fenced_code', 'tables']
+        )
+    except:
+        # 如果 markdown 库不可用，使用原始内容
+        html_content = f'<pre>{note["content"]}</pre>'
+    
+    # 生成标签 HTML
+    tags_html = ''.join([f'<span class="tag">#{tag}</span>' for tag in note['tags']])
+    
+    # 替换模板变量
+    html = template.replace('{{TITLE}}', note['title'])
+    html = html.replace('{{ICON}}', note['icon'])
+    html = html.replace('{{DATE}}', note['date'])
+    html = html.replace('{{CATEGORY}}', note['category'])
+    html = html.replace('{{TAGS}}', tags_html)
+    html = html.replace('{{CONTENT}}', html_content)
+    
+    # 生成文件名
+    filename = f"note-{note['filename']}.html"
+    output_path = Path(filename)
+    
+    # 写入文件
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(html)
+    
+    print(f'  📄 已生成: {filename}')
 
 if __name__ == '__main__':
     print('='*50)

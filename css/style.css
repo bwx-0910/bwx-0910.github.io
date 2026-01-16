@@ -117,6 +117,13 @@ body {
     margin-bottom: 40px;
 }
 
+/* 文章卡片链接 */
+.post-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
 /* 文章卡片 */
 .post-card {
     background: var(--card-bg);

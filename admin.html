@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>笔记管理后台</title>
+    
+    <!-- Quill.js 富文本编辑器 -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -302,8 +307,16 @@
                 </div>
 
                 <div class="form-group">
-                    <label>笔记内容（Markdown 格式）</label>
-                    <textarea id="noteContent" placeholder="在这里写你的笔记内容...&#10;&#10;支持 Markdown 语法：&#10;# 标题&#10;## 二级标题&#10;**粗体**&#10;*斜体*&#10;- 列表&#10;> 引用"></textarea>
+                    <label>
+                        笔记内容（富文本编辑）
+                        <span style="color: #999; font-size: 12px; font-weight: normal;">
+                            支持加粗、斜体、引用、列表等格式
+                        </span>
+                    </label>
+                    <!-- Quill 富文本编辑器容器 -->
+                    <div id="editor" style="background: white; min-height: 400px; border: 1px solid #ddd; border-radius: 8px;"></div>
+                    <!-- 隐藏的 textarea 用于存储 Markdown -->
+                    <textarea id="noteContent" style="display: none;"></textarea>
                 </div>
 
                 <div>
@@ -316,6 +329,151 @@
 
     <script>
         let currentEditFile = null;
+        let quill = null; // Quill 编辑器实例
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            initQuillEditor();
+            loadConfig();
+        });
+
+        // 初始化 Quill 富文本编辑器
+        function initQuillEditor() {
+            quill = new Quill('#editor', {
+                theme: 'snow',
+                placeholder: '开始写笔记吧...\n\n💡 提示：使用引用格式（引号按钮）来标记摘录的句子',
+                modules: {
+                    toolbar: [
+                        // 格式化
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        
+                        // 引用和代码（适合摘录）
+                        ['blockquote', 'code-block'],
+                        
+                        // 列表
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        
+                        // 颜色和背景（突出重点）
+                        [{ 'color': [] }, { 'background': [] }],
+                        
+                        // 对齐方式
+                        [{ 'align': [] }],
+                        
+                        // 清除格式
+                        ['clean']
+                    ]
+                }
+            });
+
+            // 添加自定义样式让引用更美观
+            const style = document.createElement('style');
+            style.textContent = `
+                .ql-editor blockquote {
+                    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+                    border-left: 5px solid #e17055;
+                    padding: 15px 20px;
+                    margin: 20px 0;
+                    border-radius: 8px;
+                    font-style: italic;
+                    color: #2d3436;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                .ql-editor {
+                    font-size: 16px;
+                    line-height: 1.8;
+                    min-height: 400px;
+                }
+                .ql-editor strong {
+                    color: #e74c3c;
+                    font-weight: 700;
+                }
+                .ql-editor em {
+                    color: #3498db;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // 将 Quill 内容转换为 Markdown
+        function quillToMarkdown() {
+            const delta = quill.getContents();
+            const html = quill.root.innerHTML;
+            
+            // 简单的 HTML 到 Markdown 转换
+            let markdown = html;
+            
+            // 标题
+            markdown = markdown.replace(/<h1>(.*?)<\/h1>/g, '# $1\n\n');
+            markdown = markdown.replace(/<h2>(.*?)<\/h2>/g, '## $1\n\n');
+            markdown = markdown.replace(/<h3>(.*?)<\/h3>/g, '### $1\n\n');
+            
+            // 格式化
+            markdown = markdown.replace(/<strong>(.*?)<\/strong>/g, '**$1**');
+            markdown = markdown.replace(/<em>(.*?)<\/em>/g, '*$1*');
+            markdown = markdown.replace(/<u>(.*?)<\/u>/g, '_$1_');
+            markdown = markdown.replace(/<s>(.*?)<\/s>/g, '~~$1~~');
+            
+            // 引用（重点：摘录句子）
+            markdown = markdown.replace(/<blockquote>(.*?)<\/blockquote>/gs, function(match, content) {
+                return '\n> ' + content.replace(/<[^>]*>/g, '').trim() + '\n\n';
+            });
+            
+            // 列表
+            markdown = markdown.replace(/<ul>(.*?)<\/ul>/gs, function(match, content) {
+                return content.replace(/<li>(.*?)<\/li>/g, '- $1\n');
+            });
+            markdown = markdown.replace(/<ol>(.*?)<\/ol>/gs, function(match, content) {
+                let index = 1;
+                return content.replace(/<li>(.*?)<\/li>/g, function(m, item) {
+                    return `${index++}. ${item}\n`;
+                });
+            });
+            
+            // 段落
+            markdown = markdown.replace(/<p>(.*?)<\/p>/g, '$1\n\n');
+            
+            // 清理 HTML 标签
+            markdown = markdown.replace(/<[^>]*>/g, '');
+            
+            // 清理多余空行
+            markdown = markdown.replace(/\n{3,}/g, '\n\n');
+            
+            return markdown.trim();
+        }
+
+        // 将 Markdown 转换为 Quill HTML
+        function markdownToQuill(markdown) {
+            if (!markdown) return '';
+            
+            let html = markdown;
+            
+            // 标题
+            html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+            html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+            html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+            
+            // 引用
+            html = html.replace(/^> (.*?)$/gm, '<blockquote>$1</blockquote>');
+            
+            // 加粗
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // 斜体
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // 删除线
+            html = html.replace(/~~(.*?)~~/g, '<s>$1</s>');
+            
+            // 列表（简单处理）
+            html = html.replace(/^- (.*?)$/gm, '<li>$1</li>');
+            html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            
+            // 段落
+            html = html.replace(/^(?!<[hbu]|<li)(.*?)$/gm, '<p>$1</p>');
+            
+            return html;
+        }
 
         // 加载配置
         function loadConfig() {
@@ -423,7 +581,10 @@
             document.getElementById('noteCategory').value = '';
             document.getElementById('noteTags').value = '';
             document.getElementById('noteExcerpt').value = '';
-            document.getElementById('noteContent').value = '';
+            
+            // 清空 Quill 编辑器
+            quill.setText('');
+            
             currentEditFile = null;
         }
 
@@ -462,7 +623,10 @@
                     document.getElementById('noteCategory').value = category;
                     document.getElementById('noteTags').value = tags;
                     document.getElementById('noteExcerpt').value = excerpt;
-                    document.getElementById('noteContent').value = body.trim();
+                    
+                    // 将 Markdown 内容加载到 Quill 编辑器
+                    const html = markdownToQuill(body.trim());
+                    quill.root.innerHTML = html;
                 }
                 
                 currentEditFile = {
@@ -486,7 +650,9 @@
             const category = document.getElementById('noteCategory').value;
             const tags = document.getElementById('noteTags').value;
             const excerpt = document.getElementById('noteExcerpt').value;
-            const content = document.getElementById('noteContent').value;
+            
+            // 从 Quill 编辑器获取内容并转换为 Markdown
+            const content = quillToMarkdown();
 
             if (!title || !content) {
                 alert('请至少填写标题和内容');
@@ -607,6 +773,16 @@ ${content}`;
             document.getElementById('editorSection').classList.remove('active');
             document.getElementById('noteList').style.display = 'block';
             currentEditFile = null;
+            
+            // 清空 Quill 编辑器
+            quill.setText('');
+            
+            // 清空其他表单字段
+            document.getElementById('noteTitle').value = '';
+            document.getElementById('noteIcon').value = '📖';
+            document.getElementById('noteCategory').value = '';
+            document.getElementById('noteTags').value = '';
+            document.getElementById('noteExcerpt').value = '';
         }
 
         // 页面加载时初始化

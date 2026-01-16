@@ -59,24 +59,31 @@ function renderNotes(containerId, notes) {
         return;
     }
 
-    container.innerHTML = notes.map(note => `
-        <div class="post-card" onclick="showPost('${note.id}', 'note')">
-            <div class="post-header">
-                <div class="post-icon">${note.icon}</div>
-                <h3 class="post-title">${note.title}</h3>
-                <div class="post-meta">
-                    <span>📅 ${note.date}</span>
-                    <span>📂 ${note.category}</span>
+    container.innerHTML = notes.map(note => {
+        // 生成笔记页面链接
+        const noteLink = `note-${note.id.replace('note-', '')}.html`;
+        
+        return `
+        <a href="${noteLink}" class="post-card-link">
+            <div class="post-card">
+                <div class="post-header">
+                    <div class="post-icon">${note.icon}</div>
+                    <h3 class="post-title">${note.title}</h3>
+                    <div class="post-meta">
+                        <span>📅 ${note.date}</span>
+                        <span>📂 ${note.category}</span>
+                    </div>
+                </div>
+                <div class="post-excerpt">
+                    ${note.excerpt}
+                </div>
+                <div class="post-tags">
+                    ${note.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
                 </div>
             </div>
-            <div class="post-excerpt">
-                ${note.excerpt}
-            </div>
-            <div class="post-tags">
-                ${note.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
-            </div>
-        </div>
-    `).join('');
+        </a>
+        `;
+    }).join('');
 }
 
 // 渲染视频
