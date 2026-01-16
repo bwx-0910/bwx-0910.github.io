@@ -678,11 +678,27 @@
                     const tags = frontmatter.match(/tags:\s*(.+)/)?.[1] || '';
                     const excerpt = frontmatter.match(/excerpt:\s*(.+)/)?.[1] || '';
                     
+                    // 解析摘录数组
+                    const quotesMatch = frontmatter.match(/quotes:\s*(\[[\s\S]*?\])/);
+                    if (quotesMatch) {
+                        try {
+                            quotes = JSON.parse(quotesMatch[1]);
+                        } catch (e) {
+                            console.error('解析摘录失败:', e);
+                            quotes = [];
+                        }
+                    } else {
+                        quotes = [];
+                    }
+                    
                     document.getElementById('noteTitle').value = title;
                     document.getElementById('noteIcon').value = icon;
                     document.getElementById('noteCategory').value = category;
                     document.getElementById('noteTags').value = tags;
                     document.getElementById('noteExcerpt').value = excerpt;
+                    
+                    // 渲染摘录列表
+                    renderQuotes();
                     
                     // 将 Markdown 内容加载到 Quill 编辑器
                     const html = markdownToQuill(body.trim());
