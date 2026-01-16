@@ -83,14 +83,11 @@ def convert_poems_to_js():
                 print(f'  ⚠️  跳过（没有 Front Matter）: {md_file.name}')
                 continue
             
-            # 构建古诗对象
+            # 构建古诗对象（简化格式）
             poem = {
                 'id': 'poem-' + md_file.stem.lower().replace(' ', '-'),
-                'title': frontmatter.get('title', md_file.stem),
-                'author': frontmatter.get('author', '佚名'),
-                'dynasty': frontmatter.get('dynasty', ''),
+                'source': frontmatter.get('source', '未知'),
                 'date': frontmatter.get('date', datetime.now().strftime('%Y-%m-%d')),
-                'tags': [tag.strip() for tag in frontmatter.get('tags', '').split(',') if tag.strip()],
                 'content': poem_content.strip()
             }
             
@@ -214,11 +211,8 @@ def generate_data_js(notes, poems):
     for i, poem in enumerate(poems):
         js_code += '        {\n'
         js_code += f"            id: '{poem['id']}',\n"
-        js_code += f"            title: '{escape_js_string(poem['title'])}',\n"
-        js_code += f"            author: '{escape_js_string(poem['author'])}',\n"
-        js_code += f"            dynasty: '{escape_js_string(poem['dynasty'])}',\n"
+        js_code += f"            source: '{escape_js_string(poem['source'])}',\n"
         js_code += f"            date: '{poem['date']}',\n"
-        js_code += f"            tags: {json.dumps(poem['tags'], ensure_ascii=False)},\n"
         js_code += f"            content: `{escape_js_string(poem['content'])}`\n"
         js_code += '        }'
         

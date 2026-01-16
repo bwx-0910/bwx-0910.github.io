@@ -103,23 +103,8 @@ function renderPoems(containerId, poems) {
 
     container.innerHTML = poems.map(poem => `
         <div class="poem-card">
-            <div class="poem-header">
-                <h3 class="poem-title">${poem.title}</h3>
-                <div class="poem-meta">
-                    <span>${poem.author || '佚名'}</span>
-                    <span>${poem.dynasty || ''}</span>
-                </div>
-            </div>
-            <div class="poem-content">
-                ${poem.content.split('\n').map(line => 
-                    line.trim() ? `<p>${line}</p>` : ''
-                ).join('')}
-            </div>
-            ${poem.tags && poem.tags.length > 0 ? `
-                <div class="post-tags">
-                    ${poem.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
-                </div>
-            ` : ''}
+            <div class="poem-quote">${poem.content}</div>
+            <div class="poem-source">——《${poem.source}》</div>
         </div>
     `).join('');
 }

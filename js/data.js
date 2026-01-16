@@ -20,15 +20,9 @@ const postsData = {
     poems: [
         {
             id: 'poem-静夜思',
-            title: '静夜思',
-            author: '李白',
-            dynasty: '唐',
+            source: '静夜思',
             date: '2026-01-16',
-            tags: ["思乡", "月夜"],
-            content: `床前明月光
-疑是地上霜
-举头望明月
-低头思故乡`
+            content: `举头望明月，低头思故乡`
         }
     ],
     videos: [
