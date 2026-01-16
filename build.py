@@ -53,6 +53,58 @@ def parse_frontmatter(content):
     
     return frontmatter, markdown_content
 
+def convert_poems_to_js():
+    """转换所有古诗文件为 JavaScript 数据"""
+    poems_dir = Path('poems')
+    
+    if not poems_dir.exists():
+        print('⚠️  poems 目录不存在')
+        return []
+    
+    poems = []
+    
+    # 遍历所有 .md 文件
+    for md_file in poems_dir.glob('*.md'):
+        # 跳过模板和说明文件
+        if md_file.name in ['诗词模板.md', 'README.md']:
+            continue
+        
+        print(f'📜 处理古诗: {md_file.name}')
+        
+        try:
+            # 读取文件
+            with open(md_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # 解析 Front Matter
+            frontmatter, poem_content = parse_frontmatter(content)
+            
+            if not frontmatter:
+                print(f'  ⚠️  跳过（没有 Front Matter）: {md_file.name}')
+                continue
+            
+            # 构建古诗对象
+            poem = {
+                'id': 'poem-' + md_file.stem.lower().replace(' ', '-'),
+                'title': frontmatter.get('title', md_file.stem),
+                'author': frontmatter.get('author', '佚名'),
+                'dynasty': frontmatter.get('dynasty', ''),
+                'date': frontmatter.get('date', datetime.now().strftime('%Y-%m-%d')),
+                'tags': [tag.strip() for tag in frontmatter.get('tags', '').split(',') if tag.strip()],
+                'content': poem_content.strip()
+            }
+            
+            poems.append(poem)
+            print(f'  ✅ 成功')
+            
+        except Exception as e:
+            print(f'  ❌ 错误: {e}')
+    
+    # 按日期排序（最新的在前）
+    poems.sort(key=lambda x: x['date'], reverse=True)
+    
+    return poems
+
 def convert_notes_to_js():
     """转换所有笔记文件为 JavaScript 数据和独立 HTML 页面"""
     notes_dir = Path('notes')
@@ -113,12 +165,15 @@ def convert_notes_to_js():
     # 按日期排序（最新的在前）
     notes.sort(key=lambda x: x['date'], reverse=True)
     
-    # 生成 JavaScript 文件
-    generate_data_js(notes)
+    # 转换古诗
+    poems = convert_poems_to_js()
     
-    print(f'\n✅ 转换完成！共处理 {len(notes)} 篇笔记')
+    # 生成 JavaScript 文件
+    generate_data_js(notes, poems)
+    
+    print(f'\n✅ 转换完成！共处理 {len(notes)} 篇笔记，{len(poems)} 首古诗')
 
-def generate_data_js(notes):
+def generate_data_js(notes, poems):
     """生成 data.js 文件"""
     
     # JavaScript 字符串需要转义
@@ -131,7 +186,7 @@ def generate_data_js(notes):
     # 构建 JavaScript 代码
     js_code = '// 数据配置文件\n'
     js_code += '// 此文件由 build.py 自动生成，请勿手动编辑\n'
-    js_code += '// 如需修改，请编辑 notes/*.md 文件，然后运行 build.bat\n\n'
+    js_code += '// 如需修改，请编辑 notes/*.md 或 poems/*.md 文件，然后运行 build.bat\n\n'
     js_code += 'const postsData = {\n'
     js_code += '    notes: [\n'
     
@@ -148,6 +203,26 @@ def generate_data_js(notes):
         js_code += '        }'
         
         if i < len(notes) - 1:
+            js_code += ','
+        js_code += '\n'
+    
+    js_code += '    ],\n'
+    
+    # 添加古诗数据
+    js_code += '    poems: [\n'
+    
+    for i, poem in enumerate(poems):
+        js_code += '        {\n'
+        js_code += f"            id: '{poem['id']}',\n"
+        js_code += f"            title: '{escape_js_string(poem['title'])}',\n"
+        js_code += f"            author: '{escape_js_string(poem['author'])}',\n"
+        js_code += f"            dynasty: '{escape_js_string(poem['dynasty'])}',\n"
+        js_code += f"            date: '{poem['date']}',\n"
+        js_code += f"            tags: {json.dumps(poem['tags'], ensure_ascii=False)},\n"
+        js_code += f"            content: `{escape_js_string(poem['content'])}`\n"
+        js_code += '        }'
+        
+        if i < len(poems) - 1:
             js_code += ','
         js_code += '\n'
     

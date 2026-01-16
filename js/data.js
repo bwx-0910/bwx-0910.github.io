@@ -1,6 +1,6 @@
 // 数据配置文件
 // 此文件由 build.py 自动生成，请勿手动编辑
-// 如需修改，请编辑 notes/*.md 文件，然后运行 build.bat
+// 如需修改，请编辑 notes/*.md 或 poems/*.md 文件，然后运行 build.bat
 
 const postsData = {
     notes: [
@@ -15,6 +15,20 @@ const postsData = {
             content: `
 1234
             `
+        }
+    ],
+    poems: [
+        {
+            id: 'poem-静夜思',
+            title: '静夜思',
+            author: '李白',
+            dynasty: '唐',
+            date: '2026-01-16',
+            tags: ["思乡", "月夜"],
+            content: `床前明月光
+疑是地上霜
+举头望明月
+低头思故乡`
         }
     ],
     videos: [

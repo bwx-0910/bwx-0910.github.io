@@ -9,7 +9,7 @@
     <title>读书笔记 & 视频分享</title>
     <!-- 网站图标 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
-    <link rel="stylesheet" href="css/style.css?v=1768552163">
+    <link rel="stylesheet" href="css/style.css?v=1768552429">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
@@ -22,6 +22,7 @@
             <nav class="nav">
                 <a href="#" data-tab="all" class="nav-link active">全部</a>
                 <a href="#" data-tab="notes" class="nav-link">读书笔记</a>
+                <a href="#" data-tab="poems" class="nav-link">古诗</a>
                 <a href="#" data-tab="videos" class="nav-link">视频</a>
                 <a href="#" data-tab="about" class="nav-link">关于</a>
                 <a href="admin.html" class="nav-link" style="background: rgba(255,255,255,0.3);">⚙️ 管理</a>
@@ -36,15 +37,20 @@
                 <div class="posts-grid" id="all-posts"></div>
             </section>
 
-            <!-- 读书笔记 -->
-            <section id="notes-section" class="content-section">
-                <div class="posts-grid" id="notes-posts"></div>
-            </section>
+        <!-- 读书笔记 -->
+        <section id="notes-section" class="content-section">
+            <div class="posts-grid" id="notes-posts"></div>
+        </section>
 
-            <!-- 视频 -->
-            <section id="videos-section" class="content-section">
-                <div class="videos-grid" id="videos-posts"></div>
-            </section>
+        <!-- 古诗 -->
+        <section id="poems-section" class="content-section">
+            <div class="poems-grid" id="poems-posts"></div>
+        </section>
+
+        <!-- 视频 -->
+        <section id="videos-section" class="content-section">
+            <div class="videos-grid" id="videos-posts"></div>
+        </section>
 
             <!-- 关于 -->
             <section id="about-section" class="content-section">
@@ -74,7 +80,7 @@
         </div>
     </div>
 
-    <script src="js/data.js?v=1768552163"></script>
-    <script src="js/main.js?v=1768552163"></script>
+    <script src="js/data.js?v=1768552429"></script>
+    <script src="js/main.js?v=1768552429"></script>
 </body>
 </html>

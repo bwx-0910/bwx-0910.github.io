@@ -42,6 +42,7 @@ function initNavigation() {
 function renderAllPosts() {
     renderNotes('all-posts', postsData.notes);
     renderNotes('notes-posts', postsData.notes);
+    renderPoems('poems-posts', postsData.poems || []);
     renderVideos('videos-posts', postsData.videos);
 }
 
@@ -84,6 +85,43 @@ function renderNotes(containerId, notes) {
         </a>
         `;
     }).join('');
+}
+
+// 渲染古诗
+function renderPoems(containerId, poems) {
+    const container = document.getElementById(containerId);
+    
+    if (!poems || poems.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📜</div>
+                <p>暂无古诗</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = poems.map(poem => `
+        <div class="poem-card">
+            <div class="poem-header">
+                <h3 class="poem-title">${poem.title}</h3>
+                <div class="poem-meta">
+                    <span>${poem.author || '佚名'}</span>
+                    <span>${poem.dynasty || ''}</span>
+                </div>
+            </div>
+            <div class="poem-content">
+                ${poem.content.split('\n').map(line => 
+                    line.trim() ? `<p>${line}</p>` : ''
+                ).join('')}
+            </div>
+            ${poem.tags && poem.tags.length > 0 ? `
+                <div class="post-tags">
+                    ${poem.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
 }
 
 // 渲染视频

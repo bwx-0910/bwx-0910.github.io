@@ -423,6 +423,76 @@ body {
     opacity: 0.5;
 }
 
+/* 古诗网格 */
+.poems-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+/* 古诗卡片 */
+.poem-card {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+    border: 2px solid rgba(255,255,255,0.8);
+}
+
+.poem-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.poem-header {
+    text-align: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(0,0,0,0.1);
+}
+
+.poem-title {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-weight: 700;
+    font-family: 'STKaiti', 'KaiTi', serif;
+}
+
+.poem-meta {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.poem-meta span {
+    font-family: 'STKaiti', 'KaiTi', serif;
+}
+
+.poem-content {
+    text-align: center;
+    line-height: 2.5;
+    font-family: 'STKaiti', 'KaiTi', serif;
+}
+
+.poem-content p {
+    margin: 10px 0;
+    font-size: 1.2rem;
+    color: #34495e;
+    font-weight: 500;
+}
+
+.poem-card .post-tags {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    text-align: center;
+}
+
 /* 响应式 */
 @media (max-width: 768px) {
     .site-title {
