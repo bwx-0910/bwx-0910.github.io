@@ -10,10 +10,10 @@ const postsData = {
             icon: '📖',
             date: '2026-01-16',
             category: '心理学',
-            tags: [],
+            tags: ["excerpt: 123213"],
             excerpt: '123213',
             content: `
-1
+123
             `
         }
     ],
