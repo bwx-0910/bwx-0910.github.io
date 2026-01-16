@@ -306,6 +306,23 @@
                     <textarea id="noteExcerpt" rows="3" placeholder="简短的摘要，100-200字..."></textarea>
                 </div>
 
+                <!-- 书籍摘录区域 -->
+                <div class="form-group">
+                    <label>
+                        📌 书籍摘录
+                        <span style="color: #999; font-size: 12px; font-weight: normal;">
+                            记录书中的精彩段落和金句
+                        </span>
+                    </label>
+                    <div id="quotesContainer" style="margin-bottom: 10px;">
+                        <!-- 摘录列表将动态添加到这里 -->
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <textarea id="newQuoteInput" rows="3" placeholder="输入一条摘录..." style="flex: 1;"></textarea>
+                        <button type="button" class="btn btn-primary" onclick="addQuote()" style="height: fit-content;">+ 添加摘录</button>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>
                         笔记内容（富文本编辑）
@@ -330,6 +347,7 @@
     <script>
         let currentEditFile = null;
         let quill = null; // Quill 编辑器实例
+        let quotes = []; // 存储书籍摘录
 
         // 初始化页面
         document.addEventListener('DOMContentLoaded', function() {
@@ -440,6 +458,44 @@
             markdown = markdown.replace(/\n{3,}/g, '\n\n');
             
             return markdown.trim();
+        }
+
+        // 添加摘录
+        function addQuote() {
+            const input = document.getElementById('newQuoteInput');
+            const text = input.value.trim();
+            
+            if (!text) {
+                alert('请输入摘录内容');
+                return;
+            }
+            
+            quotes.push(text);
+            input.value = '';
+            renderQuotes();
+        }
+
+        // 删除摘录
+        function removeQuote(index) {
+            quotes.splice(index, 1);
+            renderQuotes();
+        }
+
+        // 渲染摘录列表
+        function renderQuotes() {
+            const container = document.getElementById('quotesContainer');
+            
+            if (quotes.length === 0) {
+                container.innerHTML = '<p style="color: #999; font-size: 14px; padding: 10px;">暂无摘录，点击下方添加</p>';
+                return;
+            }
+            
+            container.innerHTML = quotes.map((quote, index) => `
+                <div class="quote-item">
+                    <div class="quote-text">"${quote}"</div>
+                    <button type="button" class="quote-delete" onclick="removeQuote(${index})">删除</button>
+                </div>
+            `).join('');
         }
 
         // 将 Markdown 转换为 Quill HTML
@@ -582,6 +638,10 @@
             document.getElementById('noteTags').value = '';
             document.getElementById('noteExcerpt').value = '';
             
+            // 清空摘录
+            quotes = [];
+            renderQuotes();
+            
             // 清空 Quill 编辑器
             quill.setText('');
             
@@ -661,6 +721,7 @@
 
             // 生成完整的 Markdown 内容
             const today = new Date().toISOString().split('T')[0];
+            const quotesJson = JSON.stringify(quotes);
             const fullContent = `---
 title: ${title}
 icon: ${icon}
@@ -668,6 +729,7 @@ date: ${today}
 category: ${category}
 tags: ${tags}
 excerpt: ${excerpt}
+quotes: ${quotesJson}
 ---
 
 ${content}`;
@@ -783,6 +845,10 @@ ${content}`;
             document.getElementById('noteCategory').value = '';
             document.getElementById('noteTags').value = '';
             document.getElementById('noteExcerpt').value = '';
+            
+            // 清空摘录
+            quotes = [];
+            renderQuotes();
         }
 
         // 页面加载时初始化

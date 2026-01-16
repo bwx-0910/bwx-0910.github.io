@@ -8,9 +8,16 @@ Markdown 笔记转换脚本
 import os
 import re
 import json
+import sys
+import random
 from pathlib import Path
 from datetime import datetime
 import markdown
+
+# 修复 Windows 控制台编码问题
+if sys.platform.startswith('win'):
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 def parse_frontmatter(content):
     """解析 Markdown 文件的 Front Matter"""
@@ -28,7 +35,17 @@ def parse_frontmatter(content):
     for line in frontmatter_text.split('\n'):
         if ':' in line:
             key, value = line.split(':', 1)
-            frontmatter[key.strip()] = value.strip()
+            key = key.strip()
+            value = value.strip()
+            
+            # 特殊处理 quotes 数组
+            if key == 'quotes':
+                try:
+                    frontmatter[key] = json.loads(value)
+                except:
+                    frontmatter[key] = []
+            else:
+                frontmatter[key] = value
     
     return frontmatter, markdown_content
 
@@ -75,6 +92,7 @@ def convert_notes_to_js():
                 'tags': [tag.strip() for tag in frontmatter.get('tags', '').split(',') if tag.strip()],
                 'excerpt': frontmatter.get('excerpt', ''),
                 'content': markdown_content.strip(),
+                'quotes': frontmatter.get('quotes', []),
                 'filename': md_file.stem
             }
             
@@ -183,12 +201,29 @@ def generate_note_html(note):
     # 生成标签 HTML
     tags_html = ''.join([f'<span class="tag">#{tag}</span>' for tag in note['tags']])
     
+    # 生成摘录 HTML（随机颜色）
+    quotes_html = ''
+    if note.get('quotes') and len(note['quotes']) > 0:
+        quotes_html = '<h2>📌 书籍摘录</h2><div class="quotes-grid">'
+        
+        # 定义10种渐变色
+        color_classes = [f'quote-color-{i}' for i in range(1, 11)]
+        
+        # 为每条摘录随机分配颜色
+        for i, quote in enumerate(note['quotes']):
+            # 使用索引确定颜色，这样每次生成的颜色是固定的（但看起来是随机的）
+            color_class = color_classes[i % len(color_classes)]
+            quotes_html += f'<div class="quote-card {color_class}"><p>{quote}</p></div>'
+        
+        quotes_html += '</div>'
+    
     # 替换模板变量
     html = template.replace('{{TITLE}}', note['title'])
     html = html.replace('{{ICON}}', note['icon'])
     html = html.replace('{{DATE}}', note['date'])
     html = html.replace('{{CATEGORY}}', note['category'])
     html = html.replace('{{TAGS}}', tags_html)
+    html = html.replace('{{QUOTES}}', quotes_html)
     html = html.replace('{{CONTENT}}', html_content)
     
     # 生成文件名
