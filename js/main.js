@@ -87,7 +87,7 @@ function renderNotes(containerId, notes) {
     }).join('');
 }
 
-// 渲染古诗
+// 渲染古诗（自适应大小）
 function renderPoems(containerId, poems) {
     const container = document.getElementById(containerId);
     
@@ -101,13 +101,27 @@ function renderPoems(containerId, poems) {
         return;
     }
 
-    container.innerHTML = poems.map(poem => `
-        <div class="poem-card">
-            ${poem.image ? `<img src="${poem.image}" alt="${poem.source}" class="poem-image">` : ''}
-            <div class="poem-quote">${poem.content}</div>
-            <div class="poem-source">——《${poem.source}》</div>
-        </div>
-    `).join('');
+    container.innerHTML = poems.map(poem => {
+        // 根据内容长度确定大小类
+        const contentLength = poem.content.length;
+        let sizeClass = '';
+        
+        if (contentLength < 30) {
+            sizeClass = 'poem-short';
+        } else if (contentLength < 100) {
+            sizeClass = 'poem-medium';
+        } else {
+            sizeClass = 'poem-long';
+        }
+        
+        return `
+            <div class="poem-card ${sizeClass}">
+                ${poem.image ? `<img src="${poem.image}" alt="${poem.source}" class="poem-image">` : ''}
+                <div class="poem-quote">${poem.content}</div>
+                <div class="poem-source">——《${poem.source}》</div>
+            </div>
+        `;
+    }).join('');
 }
 
 // 渲染视频

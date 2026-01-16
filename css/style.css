@@ -435,12 +435,36 @@ body {
 .poem-card {
     background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
     border-radius: 15px;
-    padding: 35px;
+    /* 自适应内边距 */
+    padding: clamp(20px, 3vw, 35px);
     box-shadow: 0 4px 15px rgba(0,0,0,0.15);
     transition: all 0.3s;
     border-left: 5px solid #e17055;
     position: relative;
     overflow: hidden;
+    
+    /* 自适应大小 */
+    flex: 1 1 auto;
+    min-width: 250px;
+    max-width: 100%;
+    width: fit-content;
+}
+
+/* 短诗句：小卡片 */
+.poem-card.poem-short {
+    flex: 0 1 calc(33.333% - 13px);
+    min-width: 250px;
+}
+
+/* 中等诗句：中等卡片 */
+.poem-card.poem-medium {
+    flex: 0 1 calc(50% - 10px);
+    min-width: 350px;
+}
+
+/* 长诗句：大卡片 */
+.poem-card.poem-long {
+    flex: 1 1 100%;
 }
 
 .poem-image {
@@ -456,7 +480,8 @@ body {
     position: absolute;
     left: 15px;
     top: 10px;
-    font-size: 60px;
+    /* 自适应引号大小 */
+    font-size: clamp(40px, 5vw, 60px);
     color: rgba(0,0,0,0.1);
     font-family: Georgia, serif;
 }
@@ -467,18 +492,22 @@ body {
 }
 
 .poem-quote {
-    font-size: 1.3rem;
+    /* 自适应字体大小 */
+    font-size: clamp(1rem, 2vw, 1.4rem);
     line-height: 2;
     color: #2d3436;
     font-family: 'STKaiti', 'KaiTi', serif;
     font-weight: 500;
     margin-bottom: 20px;
     font-style: italic;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .poem-source {
     text-align: right;
-    font-size: 1rem;
+    /* 自适应字体大小 */
+    font-size: clamp(0.9rem, 1.5vw, 1.1rem);
     color: #636e72;
     font-family: 'STKaiti', 'KaiTi', serif;
     font-weight: 600;
@@ -506,6 +535,19 @@ body {
     .nav-link {
         padding: 8px 15px;
         font-size: 14px;
+    }
+    
+    .poems-grid {
+        flex-direction: column;
+    }
+    
+    .poem-card,
+    .poem-card.poem-short,
+    .poem-card.poem-medium,
+    .poem-card.poem-long {
+        flex: 1 1 100%;
+        min-width: 100%;
+        max-width: 100%;
     }
 }
 

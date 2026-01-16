@@ -302,19 +302,43 @@
 }
 
 .quotes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
     margin-bottom: 2rem;
 }
 
 .quote-card {
-    padding: 20px 25px;
+    /* 自适应大小：根据内容长度调整 */
+    flex: 1 1 auto;
+    min-width: 200px;
+    max-width: 100%;
+    padding: 18px 22px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     position: relative;
     overflow: hidden;
     transition: transform 0.3s, box-shadow 0.3s;
+    
+    /* 根据内容长度自适应 */
+    width: fit-content;
+}
+
+/* 短内容：小卡片 */
+.quote-card.quote-short {
+    flex: 0 1 calc(33.333% - 10px);
+    min-width: 200px;
+}
+
+/* 中等内容：中等卡片 */
+.quote-card.quote-medium {
+    flex: 0 1 calc(50% - 8px);
+    min-width: 280px;
+}
+
+/* 长内容：大卡片 */
+.quote-card.quote-long {
+    flex: 1 1 100%;
 }
 
 .quote-card:hover {
@@ -337,10 +361,13 @@
     margin: 0;
     font-style: italic;
     color: rgba(0,0,0,0.8);
-    font-size: 1.05rem;
+    /* 自适应字体大小 */
+    font-size: clamp(0.95rem, 1.5vw, 1.1rem);
     line-height: 1.7;
     position: relative;
     z-index: 1;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 /* 渐变色彩集合 */
@@ -375,6 +402,14 @@
     }
 
     .quotes-grid {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+    }
+    
+    .quote-card,
+    .quote-card.quote-short,
+    .quote-card.quote-medium,
+    .quote-card.quote-long {
+        flex: 1 1 100%;
+        min-width: 100%;
     }
 }

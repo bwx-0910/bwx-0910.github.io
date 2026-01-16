@@ -276,7 +276,7 @@ def generate_note_html(note):
     # 生成标签 HTML
     tags_html = ''.join([f'<span class="tag">#{tag}</span>' for tag in note['tags']])
     
-    # 生成摘录 HTML（随机颜色）
+    # 生成摘录 HTML（随机颜色 + 自适应大小）
     quotes_html = ''
     if note.get('quotes') and len(note['quotes']) > 0:
         quotes_html = '<h2>📌 书籍摘录</h2><div class="quotes-grid">'
@@ -284,11 +284,21 @@ def generate_note_html(note):
         # 定义10种渐变色
         color_classes = [f'quote-color-{i}' for i in range(1, 11)]
         
-        # 为每条摘录随机分配颜色
+        # 为每条摘录随机分配颜色和大小
         for i, quote in enumerate(note['quotes']):
             # 使用索引确定颜色，这样每次生成的颜色是固定的（但看起来是随机的）
             color_class = color_classes[i % len(color_classes)]
-            quotes_html += f'<div class="quote-card {color_class}"><p>{quote}</p></div>'
+            
+            # 根据内容长度确定大小类
+            quote_length = len(quote)
+            if quote_length < 50:
+                size_class = 'quote-short'
+            elif quote_length < 150:
+                size_class = 'quote-medium'
+            else:
+                size_class = 'quote-long'
+            
+            quotes_html += f'<div class="quote-card {color_class} {size_class}"><p>{quote}</p></div>'
         
         quotes_html += '</div>'
     
