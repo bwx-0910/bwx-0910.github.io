@@ -38,9 +38,8 @@ jobs:
 
       - name: Commit and Push changes
         run: |
-          cd blog
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add js/data.js note-*.html index.html
+          git add blog/js/data.js blog/note-*.html blog/index.html
           git diff --staged --quiet || git commit -m "🤖 自动构建: 更新 data.js 和笔记页面 [skip ci]"
           git push
