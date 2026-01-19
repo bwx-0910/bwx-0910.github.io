@@ -8,12 +8,12 @@ const postsData = {
             id: 'note-少有人走的路',
             title: '少有人走的路',
             icon: '📖',
-            date: '2026-01-16',
+            date: '2026-01-19',
             category: '心理学',
             tags: ["excerpt: 123213"],
             excerpt: '123213',
             content: `
-1234
+123456
             `
         }
     ],
