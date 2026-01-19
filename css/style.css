@@ -442,29 +442,21 @@ body {
     border-left: 5px solid #e17055;
     position: relative;
     overflow: hidden;
-    
-    /* 自适应大小 */
-    flex: 1 1 auto;
-    min-width: 250px;
-    max-width: 100%;
-    width: fit-content;
 }
 
-/* 短诗句：小卡片 */
+/* 短诗句：正常宽度 */
 .poem-card.poem-short {
-    flex: 0 1 calc(33.333% - 13px);
-    min-width: 250px;
+    /* 默认 grid 布局 */
 }
 
-/* 中等诗句：中等卡片 */
+/* 中等诗句：正常宽度 */
 .poem-card.poem-medium {
-    flex: 0 1 calc(50% - 10px);
-    min-width: 350px;
+    /* 默认 grid 布局 */
 }
 
-/* 长诗句：大卡片 */
+/* 长诗句：独占一整行 */
 .poem-card.poem-long {
-    flex: 1 1 100%;
+    grid-column: 1 / -1;
 }
 
 .poem-image {
