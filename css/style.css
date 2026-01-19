@@ -494,6 +494,8 @@ body {
     font-style: italic;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    /* 保留换行和空格，实现段落分隔 */
+    white-space: pre-line;
 }
 
 .poem-source {
