@@ -19,6 +19,13 @@ const postsData = {
     ],
     poems: [
         {
+            id: 'poem-未知',
+            source: '未知',
+            date: '2026-01-20',
+            image: '',
+            content: `悲观者永远正确，乐观者永远前行`
+        },
+        {
             id: 'poem-滕王阁序',
             source: '滕王阁序',
             date: '2026-01-19',
