@@ -368,6 +368,8 @@
     z-index: 1;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    /* 保留换行和空格，实现段落分隔 */
+    white-space: pre-line;
 }
 
 /* 渐变色彩集合 */
