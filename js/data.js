@@ -26,6 +26,13 @@ const postsData = {
             content: `better to run than curse the road. 与其感慨路难行，不如马上出发`
         },
         {
+            id: 'poem-三国杀姜维',
+            source: '三国杀姜维',
+            date: '2026-01-26',
+            image: '',
+            content: `纵使困顿难行，亦当砥砺奋进`
+        },
+        {
             id: 'poem-未知',
             source: '未知',
             date: '2026-01-20',
