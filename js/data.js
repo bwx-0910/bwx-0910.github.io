@@ -19,6 +19,13 @@ const postsData = {
     ],
     poems: [
         {
+            id: 'poem-dota2小骷髅',
+            source: 'Dota2小骷髅',
+            date: '2026-01-26',
+            image: '',
+            content: `better to run than curse the road. 与其感慨路难行，不如马上出发`
+        },
+        {
             id: 'poem-未知',
             source: '未知',
             date: '2026-01-20',
