@@ -5,6 +5,18 @@
 const postsData = {
     notes: [
         {
+            id: 'note-玻璃珠游戏',
+            title: '玻璃珠游戏',
+            icon: '📖',
+            date: '2026-01-30',
+            category: '哲学',
+            tags: ["黑塞"],
+            excerpt: '1',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-小岛经济学',
             title: '小岛经济学',
             icon: '📖',
