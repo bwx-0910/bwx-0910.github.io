@@ -726,32 +726,59 @@
         // 打开 EPUB
         async function openEPUB(arrayBuffer) {
             document.getElementById('pdf-canvas').style.display = 'none';
-            document.getElementById('epub-view').style.display = 'block';
+            const epubContainer = document.getElementById('epub-view');
+            epubContainer.style.display = 'block';
+            epubContainer.innerHTML = ''; // 清空容器
 
             if (epubBook) {
-                epubBook.destroy();
+                try { epubBook.destroy(); } catch(e) {}
             }
 
-            epubBook = ePub(arrayBuffer);
-            epubRendition = epubBook.renderTo('epub-view', {
-                width: '100%',
-                height: '100%',
-                spread: 'none'
-            });
+            try {
+                epubBook = ePub(arrayBuffer);
+                
+                // 等待书籍元数据加载
+                await epubBook.ready;
+                
+                // 获取容器尺寸
+                const containerHeight = Math.max(500, window.innerHeight - 200);
+                
+                epubRendition = epubBook.renderTo('epub-view', {
+                    width: '100%',
+                    height: containerHeight + 'px',
+                    spread: 'none',
+                    flow: 'paginated'
+                });
 
-            await epubRendition.display();
-            
-            totalPages = 1;
-            currentPage = 1;
-            updatePageInfo();
+                // 显示第一页
+                await epubRendition.display();
+                
+                // 生成位置索引（用于计算页数）
+                await epubBook.locations.generate(1600);
+                totalPages = epubBook.locations.length() || 1;
+                currentPage = 1;
+                updatePageInfo();
 
-            epubRendition.on('relocated', (location) => {
-                if (location.start && location.start.displayed) {
-                    currentPage = location.start.displayed.page || 1;
-                    totalPages = location.start.displayed.total || 1;
-                    updatePageInfo();
-                }
-            });
+                // 监听翻页事件
+                epubRendition.on('relocated', (location) => {
+                    if (location.start) {
+                        // 使用 location 计算当前页
+                        const currentLocation = epubBook.locations.locationFromCfi(location.start.cfi);
+                        currentPage = currentLocation + 1;
+                        updatePageInfo();
+                    }
+                });
+                
+                // 添加键盘支持
+                epubRendition.on('keyup', (e) => {
+                    if (e.key === 'ArrowLeft') prevPage();
+                    if (e.key === 'ArrowRight') nextPage();
+                });
+                
+            } catch (error) {
+                console.error('EPUB 加载错误:', error);
+                showError('EPUB 加载失败: ' + error.message);
+            }
         }
 
         // 显示阅读界面
