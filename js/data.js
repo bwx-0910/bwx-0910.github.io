@@ -5,10 +5,46 @@
 const postsData = {
     notes: [
         {
+            id: 'note-玻璃珠游戏',
+            title: '玻璃珠游戏',
+            icon: '📖',
+            date: '2026-01-30',
+            category: '哲学',
+            tags: ["黑塞"],
+            excerpt: '1',
+            content: `
+1
+            `
+        },
+        {
+            id: 'note-小岛经济学',
+            title: '小岛经济学',
+            icon: '📖',
+            date: '2026-01-28',
+            category: '经济学',
+            tags: ["经济学"],
+            excerpt: '1',
+            content: `
+1
+            `
+        },
+        {
+            id: 'note-也许你该找个人聊聊',
+            title: '也许你该找个人聊聊',
+            icon: '📖',
+            date: '2026-01-28',
+            category: '心理学',
+            tags: ["心理学"],
+            excerpt: '1',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-少有人走的路',
             title: '少有人走的路',
             icon: '📖',
-            date: '2026-01-20',
+            date: '2026-01-27',
             category: '心理学',
             tags: ["无"],
             excerpt: '11111',
@@ -18,6 +54,27 @@ const postsData = {
         }
     ],
     poems: [
+        {
+            id: 'poem-妮神',
+            source: '妮神',
+            date: '2026-02-02',
+            image: '',
+            content: `你确实是个很有趣的人`
+        },
+        {
+            id: 'poem-dota2小骷髅',
+            source: 'Dota2小骷髅',
+            date: '2026-01-26',
+            image: '',
+            content: `better to run than curse the road. 与其感慨路难行，不如马上出发`
+        },
+        {
+            id: 'poem-三国杀姜维',
+            source: '三国杀姜维',
+            date: '2026-01-26',
+            image: '',
+            content: `纵使困顿难行，亦当砥砺奋进`
+        },
         {
             id: 'poem-未知',
             source: '未知',
