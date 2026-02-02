@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 导航功能
 function initNavigation() {
-    const navLinks = document.querySelectorAll('.nav-link');
+    const navLinks = document.querySelectorAll('.nav-link[data-tab]'); // 只选择有 data-tab 的链接
     const sections = document.querySelectorAll('.content-section');
 
     navLinks.forEach(link => {
@@ -25,7 +25,7 @@ function initNavigation() {
             e.preventDefault();
             
             // 更新导航激活状态
-            navLinks.forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             this.classList.add('active');
 
             // 切换内容区域
