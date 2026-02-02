@@ -5,6 +5,18 @@
 const postsData = {
     notes: [
         {
+            id: 'note-别想太多啦',
+            title: '别想太多啦',
+            icon: '📖',
+            date: '2026-02-02',
+            category: '心理学',
+            tags: ["1"],
+            excerpt: '1',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-玻璃珠游戏',
             title: '玻璃珠游戏',
             icon: '📖',
