@@ -87,7 +87,7 @@ function renderNotes(containerId, notes) {
     }).join('');
 }
 
-// 渲染古诗（自适应大小）
+// 渲染摘录（自适应大小）
 function renderPoems(containerId, poems) {
     const container = document.getElementById(containerId);
     
@@ -95,7 +95,7 @@ function renderPoems(containerId, poems) {
         container.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">📜</div>
-                <p>暂无古诗</p>
+                <p>暂无摘录</p>
             </div>
         `;
         return;
