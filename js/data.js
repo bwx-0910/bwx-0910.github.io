@@ -55,6 +55,13 @@ const postsData = {
     ],
     poems: [
         {
+            id: 'poem-妮神',
+            source: '妮神',
+            date: '2026-02-02',
+            image: '',
+            content: `你确实是个很有趣的人`
+        },
+        {
             id: 'poem-dota2小骷髅',
             source: 'Dota2小骷髅',
             date: '2026-01-26',
