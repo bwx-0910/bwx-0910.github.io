@@ -601,14 +601,17 @@
             try {
                 const arrayBuffer = await file.arrayBuffer();
                 
-                // 创建书籍数据（不保存大文件到 localStorage）
+                // 先复制一份用于保存（因为 PDF.js/EPUB.js 会分离原始 buffer）
+                const bufferCopy = arrayBuffer.slice(0);
+                
+                // 创建书籍数据
                 const bookData = {
                     name: file.name,
                     type: ext,
                     lastPage: 1
                 };
 
-                // 打开书籍
+                // 打开书籍（使用原始 buffer）
                 if (ext === 'pdf') {
                     await openPDF(arrayBuffer);
                 } else {
@@ -617,12 +620,12 @@
 
                 currentBook = bookData;
                 
-                // 尝试保存到书架（小文件）
-                if (arrayBuffer.byteLength < 5 * 1024 * 1024) { // < 5MB
+                // 尝试保存到书架（小文件，使用复制的 buffer）
+                if (bufferCopy.byteLength < 5 * 1024 * 1024) { // < 5MB
                     const books = getBooks();
                     const existingIndex = books.findIndex(b => b.name === file.name);
                     
-                    bookData.data = Array.from(new Uint8Array(arrayBuffer));
+                    bookData.data = Array.from(new Uint8Array(bufferCopy));
                     
                     if (existingIndex >= 0) {
                         books[existingIndex] = bookData;
