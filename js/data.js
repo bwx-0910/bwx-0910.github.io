@@ -5,6 +5,18 @@
 const postsData = {
     notes: [
         {
+            id: 'note-也许你该找个人聊聊',
+            title: '也许你该找个人聊聊',
+            icon: '📖',
+            date: '2026-02-03',
+            category: '心理学',
+            tags: ["心理学"],
+            excerpt: '1',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-别想太多啦',
             title: '别想太多啦',
             icon: '📖',
@@ -35,18 +47,6 @@ const postsData = {
             date: '2026-01-28',
             category: '经济学',
             tags: ["经济学"],
-            excerpt: '1',
-            content: `
-1
-            `
-        },
-        {
-            id: 'note-也许你该找个人聊聊',
-            title: '也许你该找个人聊聊',
-            icon: '📖',
-            date: '2026-01-28',
-            category: '心理学',
-            tags: ["心理学"],
             excerpt: '1',
             content: `
 1
