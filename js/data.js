@@ -8,7 +8,7 @@ const postsData = {
             id: 'note-别想太多啦',
             title: '别想太多啦',
             icon: '📖',
-            date: '2026-02-02',
+            date: '2026-02-03',
             category: '心理学',
             tags: ["1"],
             excerpt: '1',
