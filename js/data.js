@@ -79,6 +79,13 @@ const postsData = {
     ],
     poems: [
         {
+            id: 'poem-妮神1',
+            source: '妮神1',
+            date: '2026-02-06',
+            image: '',
+            content: `你不知道，这种示弱多有魅力，有人真诚地表达想和你好好相处，不希望有误会破坏感情`
+        },
+        {
             id: 'poem-杂诗七首·其一',
             source: '杂诗七首·其一',
             date: '2026-02-06',
