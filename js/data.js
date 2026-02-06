@@ -79,6 +79,14 @@ const postsData = {
     ],
     poems: [
         {
+            id: 'poem-杂诗七首·其一',
+            source: '杂诗七首·其一',
+            date: '2026-02-06',
+            image: '',
+            content: `此身天地一蘧庐，世事消磨绿鬓疏。
+毕竟几人真得鹿，不知终日梦为鱼。`
+        },
+        {
             id: 'poem-豆包',
             source: '豆包',
             date: '2026-02-05',
