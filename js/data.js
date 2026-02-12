@@ -79,6 +79,14 @@ const postsData = {
     ],
     poems: [
         {
+            id: 'poem-bwx',
+            source: 'bwx',
+            date: '2026-02-12',
+            image: '',
+            content: `看自己的时候不要只看结果忘了过程
+不要永远活在“我还不够好”中`
+        },
+        {
             id: 'poem-妮神1',
             source: '妮神1',
             date: '2026-02-06',
