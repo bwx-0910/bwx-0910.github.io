@@ -8,7 +8,7 @@ const postsData = {
             id: 'note-不要为打翻的牛奶哭泣',
             title: '不要为打翻的牛奶哭泣',
             icon: '📖',
-            date: '2026-03-09',
+            date: '2026-03-16',
             category: '心理学',
             tags: ["治愈治愈自己"],
             excerpt: '1',
