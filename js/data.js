@@ -5,6 +5,18 @@
 const postsData = {
     notes: [
         {
+            id: 'note-为什么说「太用力的人走不远」？',
+            title: '为什么说「太用力的人走不远」？',
+            icon: '📖',
+            date: '2026-03-19',
+            category: '知乎',
+            tags: ["1"],
+            excerpt: '1',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-不要为打翻的牛奶哭泣',
             title: '不要为打翻的牛奶哭泣',
             icon: '📖',
