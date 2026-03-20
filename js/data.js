@@ -5,6 +5,18 @@
 const postsData = {
     notes: [
         {
+            id: 'note-也许你该找个人聊聊',
+            title: '也许你该找个人聊聊',
+            icon: '📖',
+            date: '2026-03-20',
+            category: '心理学',
+            tags: ["心理学"],
+            excerpt: '1',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-为什么说「太用力的人走不远」？',
             title: '为什么说「太用力的人走不远」？',
             icon: '📖',
@@ -23,18 +35,6 @@ const postsData = {
             date: '2026-03-16',
             category: '心理学',
             tags: ["治愈治愈自己"],
-            excerpt: '1',
-            content: `
-1
-            `
-        },
-        {
-            id: 'note-也许你该找个人聊聊',
-            title: '也许你该找个人聊聊',
-            icon: '📖',
-            date: '2026-02-25',
-            category: '心理学',
-            tags: ["心理学"],
             excerpt: '1',
             content: `
 1
