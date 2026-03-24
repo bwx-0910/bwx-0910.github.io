@@ -61,6 +61,16 @@
             margin-bottom: 20px;
         }
 
+        /* 摘录区与下方笔记编辑器贴得更紧 */
+        .form-group--quotes {
+            margin-bottom: 10px;
+        }
+
+        .form-group--note-quill {
+            margin-top: 4px;
+            margin-bottom: 16px;
+        }
+
         .form-group label {
             display: block;
             margin-bottom: 8px;
@@ -80,9 +90,24 @@
         }
 
         .form-group textarea {
-            min-height: 400px;
-            font-family: 'Courier New', monospace;
+            min-height: 4.5rem;
             resize: vertical;
+        }
+
+        /* 日记正文需要大面积；勿用全局 400px 撑满摘要/摘录框 */
+        #diaryContent {
+            min-height: 280px;
+            font-family: 'Courier New', monospace;
+        }
+
+        #noteExcerpt,
+        #newQuoteInput {
+            min-height: 4.5rem;
+            max-height: 240px;
+        }
+
+        #poemContent {
+            min-height: 120px;
         }
 
         .form-group input:focus,
@@ -455,7 +480,7 @@
                 </div>
 
                 <!-- 书籍摘录区域 -->
-                <div class="form-group">
+                <div class="form-group form-group--quotes">
                     <label>
                         📌 书籍摘录
                         <span style="color: #999; font-size: 12px; font-weight: normal;">
@@ -471,7 +496,7 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group form-group--note-quill">
                     <label>
                         笔记内容（富文本编辑）
                         <span style="color: #999; font-size: 12px; font-weight: normal;">
@@ -479,7 +504,7 @@
                         </span>
                     </label>
                     <!-- Quill 富文本编辑器容器 -->
-                    <div id="editor" style="background: white; min-height: 400px; border: 1px solid #ddd; border-radius: 8px;"></div>
+                    <div id="editor" style="background: white; min-height: 220px; border: 1px solid #ddd; border-radius: 8px;"></div>
                     <!-- 隐藏的 textarea 用于存储 Markdown -->
                     <textarea id="noteContent" style="display: none;"></textarea>
                 </div>
@@ -561,7 +586,7 @@
                 .ql-editor {
                     font-size: 16px;
                     line-height: 1.8;
-                    min-height: 400px;
+                    min-height: 200px;
                 }
                 .ql-editor strong {
                     color: #e74c3c;
