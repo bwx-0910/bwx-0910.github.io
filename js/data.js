@@ -5,19 +5,6 @@
 const postsData = {
     notes: [
         {
-            id: 'note-也许你该找个人聊聊',
-            title: '也许你该找个人聊聊',
-            icon: '📖',
-            date: '2026-03-24',
-            category: 'Psychotherapists',
-            tags: ["Psychotherapists"],
-            excerpt: '这是一位心理治疗师的回忆录,讲述了发生在诊室中的故事.',
-            cover: 'https://books.google.com/books/content?id=GPLYzgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api',
-            content: `
-1
-            `
-        },
-        {
             id: 'note-别想太多啦',
             title: '别想太多啦',
             icon: '📖',
@@ -26,6 +13,32 @@ const postsData = {
             tags: ["Conduct of life"],
             excerpt: '在复杂的世界里, 做一个简单的人',
             cover: '',
+            content: `
+1
+            `
+        },
+        {
+            id: 'note-玻璃珠游戏',
+            title: '玻璃珠游戏',
+            icon: '📖',
+            date: '2026-03-24',
+            category: '著者: 黑塞',
+            tags: ["黑塞", "徐进夫"],
+            excerpt: '1',
+            cover: '',
+            content: `
+1
+            `
+        },
+        {
+            id: 'note-也许你该找个人聊聊',
+            title: '也许你该找个人聊聊',
+            icon: '📖',
+            date: '2026-03-24',
+            category: 'Psychotherapists',
+            tags: ["Psychotherapists"],
+            excerpt: '这是一位心理治疗师的回忆录,讲述了发生在诊室中的故事.',
+            cover: 'https://books.google.com/books/content?id=GPLYzgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api',
             content: `
 1
             `
@@ -70,19 +83,6 @@ const postsData = {
             `
         },
         {
-            id: 'note-玻璃珠游戏',
-            title: '玻璃珠游戏',
-            icon: '📖',
-            date: '2026-01-30',
-            category: '哲学',
-            tags: ["黑塞"],
-            excerpt: '1',
-            cover: '',
-            content: `
-1
-            `
-        },
-        {
             id: 'note-小岛经济学',
             title: '小岛经济学',
             icon: '📖',
@@ -111,18 +111,18 @@ const postsData = {
     ],
     poems: [
         {
-            id: 'poem-淮上与友人别',
-            source: '淮上与友人别',
-            date: '2026-03-23',
-            image: '',
-            content: `扬子江头杨柳春，杨花愁杀渡江人。数声风笛离亭晚，君向潇湘我向秦。`
-        },
-        {
             id: 'poem-送友人东归',
             source: '送友人东归',
             date: '2026-03-23',
             image: '',
             content: `是身如聚沫，如烛亦如风。 奔走天地内，苦为万虑攻。 陈子得先觉，水镜当胸中。 异乡各为客，相看如秋鸿。 扁舟忽归去，宛然此道东。 我亦议远适，西入华与嵩。 饮水有馀乐，避烦甘百穷。 相逢不可欺，偶然如飘蓬。 于道各努力，千里自同风。`
+        },
+        {
+            id: 'poem-淮上与友人别',
+            source: '淮上与友人别',
+            date: '2026-03-23',
+            image: '',
+            content: `扬子江头杨柳春，杨花愁杀渡江人。数声风笛离亭晚，君向潇湘我向秦。`
         },
         {
             id: 'poem-珮鸣悠扬',
