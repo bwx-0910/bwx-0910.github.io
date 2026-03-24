@@ -1,13 +1,14 @@
 name: Auto Build Data.js
 
 on:
+  workflow_dispatch:  # 可手动运行：Actions → 本工作流 → Run workflow
   push:
     branches:
       - main
     paths:
       - 'notes/**/*.md'   # 当 notes 目录下的 md 文件改变时触发
       - 'poems/**/*.md'   # 当 poems 目录下的 md 文件改变时触发
-      - 'diaries/**/*.md' # 日记：管理页保存后自动重建 data.js
+      - 'diaries/**/*.md' # 日记：管理页保存后自动重建 data.js（与上面相同机制）
 
 jobs:
   build:

@@ -335,7 +335,7 @@
         <!-- 日记列表 -->
         <div class="note-list content-panel" id="diaryList" style="display: none;">
             <h2>📔 日记</h2>
-            <p style="color: #666; font-size: 14px; margin-bottom: 12px;">按日期一篇，文件名一般为 <code>YYYY-MM-DD.md</code>，适合每天记录。</p>
+            <p style="color: #666; font-size: 14px; margin-bottom: 12px;">按日期一篇，保存后会自动推送到 GitHub，与读书笔记、摘录一样由 Actions 更新站点数据。文件名一般为 <code>YYYY-MM-DD.md</code>。</p>
             <button class="btn btn-primary" onclick="showDiaryEditor()">+ 写一篇日记</button>
             <div id="diaryListContent" style="margin-top: 20px;"></div>
         </div>
@@ -1577,7 +1577,7 @@ ${body}`;
                     throw new Error(err.message || '保存失败');
                 }
 
-                alert('✅ 保存成功！\n\n本地请运行 build.bat 更新 data.js，或等待 GitHub 同步后拉取再构建。');
+                alert('✅ 保存成功！\n\n已推送到 GitHub，与读书笔记、摘录相同。仓库会自动运行 Actions 更新 js/data.js，约 1～2 分钟后刷新首页「日记」即可看到（若未更新可稍等或到 Actions 查看构建是否成功）。');
                 cancelDiaryEdit();
                 loadDiaries();
             } catch (error) {
