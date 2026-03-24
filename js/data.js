@@ -8,7 +8,7 @@ const postsData = {
             id: 'note-也许你该找个人聊聊',
             title: '也许你该找个人聊聊',
             icon: '📖',
-            date: '2026-03-23',
+            date: '2026-03-24',
             category: '心理学',
             tags: ["心理学"],
             excerpt: '1',
