@@ -620,6 +620,58 @@ body {
     grid-column: 1 / -1;
 }
 
+.diary-card--locked {
+    border-left-color: #f59e0b;
+}
+
+.diary-lock-box {
+    margin-top: 4px;
+}
+
+.diary-lock-hint {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 10px;
+}
+
+.diary-lock-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.diary-pw-input {
+    flex: 1;
+    min-width: 160px;
+    max-width: 280px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+
+.btn.diary-unlock-btn {
+    padding: 10px 18px;
+    font-size: 14px;
+    background: #1f2937;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn.diary-unlock-btn:hover {
+    opacity: 0.92;
+}
+
+.diary-body--clear {
+    margin-top: 10px;
+}
+
 .diary-header {
     margin-bottom: 12px;
     padding-bottom: 12px;

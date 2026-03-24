@@ -130,10 +130,14 @@ def convert_diaries_to_js():
                 print(f'  ⚠️  跳过（没有 Front Matter）: {md_file.name}')
                 continue
 
+            lv = frontmatter.get('locked', '')
+            locked = str(lv).strip().lower() in ('true', '1', 'yes', 'on')
+
             diary = {
                 'id': 'diary-' + md_file.stem.lower().replace(' ', '-'),
                 'date': frontmatter.get('date', datetime.now().strftime('%Y-%m-%d')),
                 'title': frontmatter.get('title', '日记'),
+                'locked': locked,
                 'content': diary_body.strip()
             }
 
@@ -277,6 +281,7 @@ def generate_data_js(notes, poems, diaries):
         js_code += f"            id: '{d['id']}',\n"
         js_code += f"            date: '{d['date']}',\n"
         js_code += f"            title: '{escape_js_string(d['title'])}',\n"
+        js_code += f"            locked: {str(d.get('locked', False)).lower()},\n"
         js_code += f"            content: `{escape_js_string(d['content'])}`\n"
         js_code += '        }'
 

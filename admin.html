@@ -383,9 +383,25 @@
                     <input type="text" id="diaryTitle" placeholder="如今日随笔、心情等">
                 </div>
 
+                <div id="diaryUnlockPanel" class="form-group" style="display:none; background:#fffbeb; padding:14px; border-radius:10px; border:1px solid #fcd34d;">
+                    <label>🔒 此日记已加密</label>
+                    <p style="color:#666;font-size:13px;margin:8px 0 10px;">请输入与发布时相同的密码，解锁后才能编辑正文。</p>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                        <input type="password" id="diaryUnlockPassword" placeholder="密码" style="max-width:260px;">
+                        <button type="button" class="btn btn-primary" onclick="unlockDiaryForEdit()">解锁编辑</button>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>正文（支持 Markdown）</label>
                     <textarea id="diaryContent" rows="16" placeholder="今天发生了什么……"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>阅读密码（可选）</label>
+                    <input type="password" id="diaryPassword" placeholder="留空则公开；保存时用此密码加密正文" style="margin-bottom:8px;">
+                    <input type="password" id="diaryPassword2" placeholder="确认密码">
+                    <p style="color:#999;font-size:12px;margin-top:8px;line-height:1.5;">仅在浏览器内加密；GitHub 上存的是密文。访客需在同一页面输入密码解密（弱密码仍可能被暴力尝试，请谨慎）。</p>
                 </div>
 
                 <div>
@@ -517,6 +533,7 @@
         </div>
     </div>
 
+    <script src="js/diary-crypto.js"></script>
     <script>
         let currentEditFile = null;
         let currentEditPoem = null;
@@ -1852,7 +1869,29 @@ date: ${today}`;
             document.getElementById('diaryDate').value = today;
             document.getElementById('diaryTitle').value = '';
             document.getElementById('diaryContent').value = '';
+            document.getElementById('diaryPassword').value = '';
+            document.getElementById('diaryPassword2').value = '';
+            document.getElementById('diaryUnlockPassword').value = '';
+            document.getElementById('diaryUnlockPanel').style.display = 'none';
+            window._diaryEncryptedPayload = null;
             currentEditDiary = null;
+        }
+
+        async function unlockDiaryForEdit() {
+            const pw = document.getElementById('diaryUnlockPassword').value;
+            const payload = window._diaryEncryptedPayload;
+            if (!payload || typeof diaryDecrypt !== 'function') {
+                alert('无法解密：缺少数据或脚本');
+                return;
+            }
+            try {
+                const plain = await diaryDecrypt(pw, payload);
+                document.getElementById('diaryContent').value = plain;
+                document.getElementById('diaryUnlockPanel').style.display = 'none';
+                window._diaryEncryptedPayload = null;
+            } catch (e) {
+                alert('密码错误或内容已损坏');
+            }
         }
 
         async function editDiary(filename) {
@@ -1876,9 +1915,22 @@ date: ${today}`;
                     const body = match[2];
                     const dateM = frontmatter.match(/date:\s*(.+)/);
                     const titleM = frontmatter.match(/title:\s*(.+)/);
+                    const lockedM = frontmatter.match(/^\s*locked:\s*(.+)$/m);
+                    const isLocked = lockedM && /^(true|1|yes|on)\s*$/i.test(lockedM[1].trim());
                     document.getElementById('diaryDate').value = (dateM && dateM[1] ? dateM[1].trim() : filename.replace('.md', ''));
                     document.getElementById('diaryTitle').value = titleM && titleM[1] ? titleM[1].trim() : '';
-                    document.getElementById('diaryContent').value = body.trim();
+                    document.getElementById('diaryPassword').value = '';
+                    document.getElementById('diaryPassword2').value = '';
+                    document.getElementById('diaryUnlockPassword').value = '';
+                    if (isLocked) {
+                        window._diaryEncryptedPayload = body.trim();
+                        document.getElementById('diaryContent').value = '';
+                        document.getElementById('diaryUnlockPanel').style.display = 'block';
+                    } else {
+                        window._diaryEncryptedPayload = null;
+                        document.getElementById('diaryUnlockPanel').style.display = 'none';
+                        document.getElementById('diaryContent').value = body.trim();
+                    }
                 }
 
                 currentEditDiary = { name: filename, sha: file.sha };
@@ -1894,21 +1946,42 @@ date: ${today}`;
         async function saveDiary() {
             const dateStr = document.getElementById('diaryDate').value;
             const title = document.getElementById('diaryTitle').value.trim();
-            const body = document.getElementById('diaryContent').value.trim();
+            let body = document.getElementById('diaryContent').value.trim();
+            const pw = document.getElementById('diaryPassword').value;
+            const pw2 = document.getElementById('diaryPassword2').value;
 
             if (!dateStr) {
                 alert('请选择日期');
+                return;
+            }
+            if (window._diaryEncryptedPayload && !body) {
+                alert('请先解锁加密日记后再编辑，或取消后重新打开');
                 return;
             }
             if (!body) {
                 alert('请填写正文');
                 return;
             }
+            if ((pw || pw2) && pw !== pw2) {
+                alert('两次输入的密码不一致');
+                return;
+            }
+            if (pw && typeof diaryEncrypt !== 'function') {
+                alert('缺少加密脚本，请刷新页面后重试');
+                return;
+            }
+
+            let lockedYaml = 'false';
+            if (pw) {
+                body = await diaryEncrypt(pw, body);
+                lockedYaml = 'true';
+            }
 
             const safeTitle = title || '日记';
             const fullContent = `---
 date: ${dateStr}
 title: ${safeTitle}
+locked: ${lockedYaml}
 ---
 
 ${body}`;
@@ -2034,6 +2107,11 @@ ${body}`;
             currentEditDiary = null;
             document.getElementById('diaryContent').value = '';
             document.getElementById('diaryTitle').value = '';
+            document.getElementById('diaryPassword').value = '';
+            document.getElementById('diaryPassword2').value = '';
+            document.getElementById('diaryUnlockPassword').value = '';
+            document.getElementById('diaryUnlockPanel').style.display = 'none';
+            window._diaryEncryptedPayload = null;
         }
 
         // 处理粘贴事件（支持粘贴图片）

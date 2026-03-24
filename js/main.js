@@ -79,7 +79,7 @@ function escapeHtmlText(str) {
         .replace(/"/g, '&quot;');
 }
 
-// 渲染日记（Markdown，按日期一篇）
+// 渲染日记（Markdown，按日期一篇；locked 时需密码解密）
 function renderDiaries(containerId, diaries) {
     const container = document.getElementById(containerId);
 
@@ -93,7 +93,29 @@ function renderDiaries(containerId, diaries) {
         return;
     }
 
-    container.innerHTML = diaries.map(d => {
+    container.innerHTML = diaries.map((d, idx) => {
+        const title = d.title || '日记';
+
+        if (d.locked) {
+            return `
+            <article class="diary-card diary-card--locked diary-short" data-diary-idx="${idx}">
+                <header class="diary-header">
+                    <time class="diary-date" datetime="${escapeHtmlText(d.date)}">${escapeHtmlText(d.date)}</time>
+                    <h3 class="diary-title">${escapeHtmlText(title)}</h3>
+                </header>
+                <div class="diary-lock-box">
+                    <p class="diary-lock-hint">🔒 此篇已加密，输入密码后在本机解密阅读</p>
+                    <div class="diary-lock-row">
+                        <input type="password" class="diary-pw-input" autocomplete="off" placeholder="阅读密码" aria-label="日记密码">
+                        <button type="button" class="btn diary-unlock-btn">解锁</button>
+                    </div>
+                    <p class="diary-lock-note" style="display:none;color:#c00;font-size:13px;margin-top:8px;">密码错误或内容已损坏</p>
+                </div>
+                <div class="diary-body diary-body--clear" style="display:none;"></div>
+            </article>
+            `;
+        }
+
         const raw = d.content || '';
         const len = raw.length;
         let sizeClass = 'diary-short';
@@ -110,8 +132,6 @@ function renderDiaries(containerId, diaries) {
             bodyHtml = '<p>' + escapeHtmlText(raw).replace(/\n/g, '</p><p>') + '</p>';
         }
 
-        const title = d.title || '日记';
-
         return `
             <article class="diary-card ${sizeClass}">
                 <header class="diary-header">
@@ -122,6 +142,50 @@ function renderDiaries(containerId, diaries) {
             </article>
         `;
     }).join('');
+
+    container.querySelectorAll('.diary-card--locked').forEach(card => {
+        const idx = parseInt(card.getAttribute('data-diary-idx'), 10);
+        const d = diaries[idx];
+        if (!d || !d.locked) return;
+
+        const btn = card.querySelector('.diary-unlock-btn');
+        const input = card.querySelector('.diary-pw-input');
+        const errP = card.querySelector('.diary-lock-note');
+        const lockBox = card.querySelector('.diary-lock-box');
+        const bodyEl = card.querySelector('.diary-body--clear');
+
+        btn.addEventListener('click', async function () {
+            errP.style.display = 'none';
+            const pw = (input && input.value) || '';
+            if (typeof diaryDecrypt !== 'function') {
+                alert('缺少解密脚本，请刷新页面');
+                return;
+            }
+            try {
+                const plain = await diaryDecrypt(pw, d.content);
+                let html = plain;
+                if (typeof marked !== 'undefined') {
+                    html = marked.parse(plain);
+                } else {
+                    html = '<p>' + escapeHtmlText(plain).replace(/\n/g, '</p><p>') + '</p>';
+                }
+                bodyEl.innerHTML = html;
+                bodyEl.style.display = 'block';
+                if (lockBox) lockBox.style.display = 'none';
+                card.classList.remove('diary-short');
+                const L = plain.length;
+                if (L > 600) card.classList.add('diary-long');
+                else if (L > 200) card.classList.add('diary-medium');
+                else card.classList.add('diary-short');
+            } catch (e) {
+                errP.style.display = 'block';
+            }
+        });
+
+        input.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter') btn.click();
+        });
+    });
 }
 
 // 渲染笔记
