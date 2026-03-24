@@ -427,7 +427,7 @@
                     <input type="text" id="noteCoverUrl" placeholder="https://...">
                     <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                         <button type="button" class="btn btn-primary" id="btnSmartBook" onclick="smartFillBookMeta()">智能检索书目</button>
-                        <span style="color: #666; font-size: 13px;">根据书名或 ISBN 从 Open Library / Google Books 拉取封面、分类、标签与摘要（英文库为主，中文书可多试几种书名）</span>
+                        <span style="color: #666; font-size: 13px;">从 Open Library / Google Books 多候选比对书名后择优填入；建议书名与版权页一致，有 ISBN 时更准。</span>
                     </div>
                     <div style="margin-top: 12px;">
                         <img id="noteCoverPreview" alt="封面预览" style="max-height: 160px; max-width: 120px; border-radius: 8px; border: 1px solid #e0e0e0; display: none;">
@@ -857,15 +857,48 @@
                 .trim();
         }
 
-        /** Open Library 搜索 */
-        async function searchOpenLibrary(q) {
-            if (!q) return null;
-            const url = 'https://openlibrary.org/search.json?q=' + encodeURIComponent(q) + '&limit=8';
-            const r = await fetch(url);
-            if (!r.ok) return null;
-            const j = await r.json();
-            const d = j.docs && j.docs[0];
-            if (!d) return null;
+        /** 比对用：去标点与空白，便于中英文书名匹配 */
+        function normalizeForMatch(s) {
+            if (!s) return '';
+            return String(s)
+                .toLowerCase()
+                .replace(/《|》|·|…|\.{2,}|。+|,|，|、|：|:|；|;|!|！|\?|？|\(|\)|（|）|\[|\]|【|】|"|'|「|」/g, '')
+                .replace(/\s+/g, '')
+                .trim();
+        }
+
+        /**
+         * 书名相似度：完全/包含匹配优先，再做字符块重叠（适合中文无分词）
+         */
+        function scoreTitleMatch(candidateTitle, query) {
+            if (!candidateTitle || !query) return 0;
+            const c = normalizeForMatch(candidateTitle);
+            const q = normalizeForMatch(query);
+            if (!q) return 0;
+            if (c === q) return 100;
+            if (c.includes(q)) return 92;
+            if (q.includes(c) && c.length >= 2) return 88;
+            const qLen = q.length;
+            let best = 0;
+            for (let len = Math.min(qLen, 8); len >= 2; len--) {
+                for (let i = 0; i + len <= qLen; i++) {
+                    const sub = q.slice(i, i + len);
+                    if (c.includes(sub)) best = Math.max(best, len);
+                }
+            }
+            if (best >= 4) return 55 + Math.min(35, Math.floor(best * 4));
+            if (best >= 2) return 20 + best * 5;
+            return 0;
+        }
+
+        function openLibraryDocTitle(d) {
+            const t = d.title;
+            if (Array.isArray(t)) return (t[0] || '').trim();
+            return String(t || '').trim();
+        }
+
+        function metaFromOpenLibraryDoc(d) {
+            const title = openLibraryDocTitle(d);
             const cover = d.cover_i
                 ? 'https://covers.openlibrary.org/b/id/' + d.cover_i + '-M.jpg'
                 : '';
@@ -877,19 +910,14 @@
             }
             const subjects = (d.subject || []).slice(0, 8);
             const category = subjects.length ? subjects[0] : '';
-            return { source: 'Open Library', cover, category, subjects, excerpt, title: d.title };
+            return { source: 'Open Library', cover, category, subjects, excerpt, title };
         }
 
-        /** Google Books 搜索（对中文书名往往更有效） */
-        async function searchGoogleBooks(q) {
-            if (!q) return null;
-            const url = 'https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(q) + '&maxResults=5&langRestrict=zh';
-            const r = await fetch(url);
-            if (!r.ok) return null;
-            const j = await r.json();
-            const item = j.items && j.items[0];
-            if (!item) return null;
+        function metaFromGoogleVolumeItem(item) {
             const vi = item.volumeInfo || {};
+            const title = vi.title || '';
+            const st = vi.subtitle || '';
+            const fullTitle = st ? (title + ' ' + st) : title;
             let cover = '';
             if (vi.imageLinks) {
                 cover = (vi.imageLinks.thumbnail || vi.imageLinks.smallThumbnail || '').replace(/^http:/, 'https:');
@@ -906,8 +934,87 @@
                 category,
                 subjects,
                 excerpt,
-                title: vi.title
+                title: fullTitle.trim()
             };
+        }
+
+        /** Open Library：取多条结果，按与查询书名的相似度择优（不再用 docs[0]） */
+        async function searchOpenLibrary(q) {
+            if (!q) return null;
+            const url = 'https://openlibrary.org/search.json?q=' + encodeURIComponent(q) + '&limit=25';
+            const r = await fetch(url);
+            if (!r.ok) return null;
+            const j = await r.json();
+            const docs = j.docs || [];
+            if (!docs.length) return null;
+            let best = null;
+            let bestScore = -1;
+            for (const d of docs) {
+                const meta = metaFromOpenLibraryDoc(d);
+                let s = scoreTitleMatch(meta.title, q);
+                if (meta.cover) s += 2;
+                if (s > bestScore) {
+                    bestScore = s;
+                    best = meta;
+                }
+            }
+            return best;
+        }
+
+        /**
+         * Google Books：不强制 langRestrict（易把无关书排前）；
+         * 先 intitle，无结果再全文 q；多本之间按书名相似度择优。
+         */
+        async function searchGoogleBooks(q) {
+            if (!q) return null;
+            const urls = [
+                'https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent('intitle:' + q) + '&maxResults=12',
+                'https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(q) + '&maxResults=12'
+            ];
+            const byId = new Map();
+            for (const url of urls) {
+                const r = await fetch(url);
+                if (!r.ok) continue;
+                const j = await r.json();
+                (j.items || []).forEach((item, idx) => {
+                    const key = item.id || ('vol-' + idx + '-' + (item.volumeInfo && item.volumeInfo.title || ''));
+                    if (!byId.has(key)) byId.set(key, item);
+                });
+            }
+            const items = Array.from(byId.values());
+            if (!items.length) return null;
+            let best = null;
+            let bestScore = -1;
+            for (const item of items) {
+                const meta = metaFromGoogleVolumeItem(item);
+                let s = scoreTitleMatch(meta.title, q);
+                if (meta.cover) s += 2;
+                if (s > bestScore) {
+                    bestScore = s;
+                    best = meta;
+                }
+            }
+            return best;
+        }
+
+        /** 在 ISBN / Google / Open Library 多条结果中选与当前书名最一致的一条 */
+        function chooseBestBookMeta(candidates, titleForMatch) {
+            const q = normalizeBookQuery(titleForMatch) || titleForMatch || '';
+            const list = candidates.filter(Boolean);
+            if (!list.length) return null;
+            if (list.length === 1) return list[0];
+            let best = null;
+            let bestScore = -1;
+            for (const m of list) {
+                let s = scoreTitleMatch(m.title || '', q);
+                if (m.cover) s += 3;
+                if (m.source && String(m.source).indexOf('ISBN') !== -1 && q.length < 2) s += 40;
+                if (s > bestScore) {
+                    bestScore = s;
+                    best = m;
+                }
+            }
+            return best || list[0];
         }
 
         /** ISBN → Open Library（isbn 接口） */
@@ -971,26 +1078,30 @@
             const oldText = btn.textContent;
             btn.textContent = '检索中…';
             try {
-                let meta = null;
+                const qTitle = normalizeBookQuery(titleRaw) || titleRaw;
+                const qSearch = qTitle || isbn.replace(/[-\s]/g, '');
+                const candidates = [];
+                if (qSearch) {
+                    const g = await searchGoogleBooks(qSearch);
+                    if (g) candidates.push(g);
+                    const o = await searchOpenLibrary(qSearch);
+                    if (o) candidates.push(o);
+                }
                 if (isbn) {
-                    meta = await lookupOpenLibraryIsbn(isbn);
+                    const byIsbn = await lookupOpenLibraryIsbn(isbn);
+                    if (byIsbn) candidates.push(byIsbn);
                 }
-                if (!meta || (!meta.cover && !meta.excerpt && !meta.category)) {
-                    const q = isbn || normalizeBookQuery(titleRaw) || titleRaw;
-                    const o = await searchOpenLibrary(q);
-                    if (o) meta = o;
-                }
-                if (!meta || (!meta.cover && !meta.excerpt && !meta.category)) {
-                    const q = normalizeBookQuery(titleRaw) || titleRaw;
-                    const g = await searchGoogleBooks(q);
-                    if (g) meta = g;
+
+                let meta = chooseBestBookMeta(candidates, titleRaw);
+                if (!meta && candidates.length) {
+                    meta = candidates[0];
                 }
                 if (!meta) {
-                    alert('未找到可用的书目信息。可尝试：英文书名、去掉副标题，或填写 ISBN。');
+                    alert('未找到可用的书目信息。可尝试：与版权页一致的书名、英文书名，或填写 ISBN。');
                     return;
                 }
                 applyBookMeta(meta);
-                alert('已填入（来源: ' + meta.source + '）\n\n请按需修改分类与标签；摘要多为英文或简介节选。');
+                alert('已填入（来源: ' + meta.source + '）\n\n已按书名从多条结果中择优；若仍不对请改书名或填 ISBN 后再试。');
             } catch (e) {
                 alert('检索失败：' + (e.message || String(e)));
                 console.error(e);
