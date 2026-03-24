@@ -47,10 +47,10 @@ const postsData = {
             id: 'note-为什么说「太用力的人走不远」？',
             title: '为什么说「太用力的人走不远」？',
             icon: '📖',
-            date: '2026-03-19',
-            category: '知乎',
-            tags: ["1"],
-            excerpt: '1',
+            date: '2026-03-24',
+            category: '知乎问题',
+            tags: ["知乎"],
+            excerpt: '我感觉很有意思的知乎问题',
             cover: '',
             content: `
 1
