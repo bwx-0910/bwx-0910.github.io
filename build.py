@@ -369,9 +369,12 @@ def generate_note_html(note):
     if note.get('cover'):
         esc = html_module.escape(note['cover'], quote=True)
         cover_html = f'<div class="note-cover-wrap"><img class="note-cover" src="{esc}" alt="封面" loading="lazy" referrerpolicy="no-referrer"></div>'
+    icon_html = ''
+    if not note.get('cover'):
+        icon_html = f'<div class="note-icon">{note["icon"]}</div>'
     html = template.replace('{{COVER_HTML}}', cover_html)
+    html = html.replace('{{ICON_HTML}}', icon_html)
     html = html.replace('{{TITLE}}', note['title'])
-    html = html.replace('{{ICON}}', note['icon'])
     html = html.replace('{{DATE}}', note['date'])
     html = html.replace('{{CATEGORY}}', note['category'])
     html = html.replace('{{TAGS}}', tags_html)

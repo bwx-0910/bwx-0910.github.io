@@ -145,6 +145,7 @@ function renderNotes(containerId, notes) {
         const coverBlock = note.cover
             ? `<div class="post-cover-wrap"><img class="post-cover-img" src="${escapeHtmlText(note.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer"></div>`
             : '';
+        const iconBlock = note.cover ? '' : `<div class="post-icon">${note.icon}</div>`;
 
         return `
         <a href="${noteLink}" class="post-card-link">
@@ -152,7 +153,7 @@ function renderNotes(containerId, notes) {
                 <div class="post-header">
                     ${coverBlock}
                     <div class="post-header-inner">
-                    <div class="post-icon">${note.icon}</div>
+                    ${iconBlock}
                     <h3 class="post-title">${escapeHtmlText(note.title)}</h3>
                     <div class="post-meta">
                         <span>📅 ${escapeHtmlText(note.date)}</span>
