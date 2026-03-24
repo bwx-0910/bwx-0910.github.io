@@ -997,24 +997,71 @@
             return best;
         }
 
-        /** 在 ISBN / Google / Open Library 多条结果中选与当前书名最一致的一条 */
+        /** 封面/摘要等可填项数量，用于在书名相近时优先信息更全的条目 */
+        function bookMetaRichness(m) {
+            if (!m) return 0;
+            let r = 0;
+            if (m.cover) r += 4;
+            if (m.excerpt) r += 3;
+            if (m.category) r += 1;
+            if (m.subjects && m.subjects.length) r += 2;
+            return r;
+        }
+
+        function bookMetaHasContent(meta) {
+            return !!(meta && (meta.cover || meta.category || (meta.subjects && meta.subjects.length) || meta.excerpt));
+        }
+
+        /**
+         * 从主条目补全缺失字段：仅合并「书名得分与最高分接近」的其它候选，避免张冠李戴。
+         */
+        function mergeBookMetaFields(primary, others, q, maxTitleScore) {
+            const out = Object.assign({}, primary);
+            if (!others || !others.length) return out;
+            const safe = others.filter(o => {
+                if (!q || q.length < 2) return true;
+                const t = scoreTitleMatch(o.title || '', q);
+                return t >= maxTitleScore - 18;
+            });
+            for (const o of safe) {
+                if (!out.cover && o.cover) out.cover = o.cover;
+                if (!out.category && o.category) out.category = o.category;
+                if (!out.excerpt && o.excerpt) out.excerpt = o.excerpt;
+                if ((!out.subjects || !out.subjects.length) && o.subjects && o.subjects.length) out.subjects = o.subjects.slice(0, 8);
+            }
+            return out;
+        }
+
+        /** 在 ISBN / Google / Open Library 多条结果中选主条目并合并字段 */
         function chooseBestBookMeta(candidates, titleForMatch) {
             const q = normalizeBookQuery(titleForMatch) || titleForMatch || '';
             const list = candidates.filter(Boolean);
             if (!list.length) return null;
-            if (list.length === 1) return list[0];
-            let best = null;
-            let bestScore = -1;
-            for (const m of list) {
-                let s = scoreTitleMatch(m.title || '', q);
-                if (m.cover) s += 3;
-                if (m.source && String(m.source).indexOf('ISBN') !== -1 && q.length < 2) s += 40;
-                if (s > bestScore) {
-                    bestScore = s;
-                    best = m;
-                }
+            if (list.length === 1) {
+                return list[0];
             }
-            return best || list[0];
+            if (q.length < 2) {
+                const isbnMeta = list.find(m => String(m.source || '').indexOf('ISBN') !== -1);
+                const primary = isbnMeta || list[0];
+                const others = list.filter(m => m !== primary);
+                return mergeBookMetaFields(primary, others, q, 100);
+            }
+            const scored = list.map(m => ({
+                m,
+                t: scoreTitleMatch(m.title || '', q)
+            }));
+            const maxT = Math.max(...scored.map(x => x.t), 0);
+            const near = scored.filter(x => x.t >= maxT - 15).map(x => x.m);
+            const pool = near.length ? near : list.map(x => x.m);
+            pool.sort((a, b) => {
+                const ta = scoreTitleMatch(a.title || '', q);
+                const tb = scoreTitleMatch(b.title || '', q);
+                if (tb !== ta) return tb - ta;
+                return bookMetaRichness(b) - bookMetaRichness(a);
+            });
+            const primary = pool[0];
+            const others = list.filter(m => m !== primary);
+            return mergeBookMetaFields(primary, others, q, maxT);
         }
 
         /** ISBN → Open Library（isbn 接口） */
@@ -1052,6 +1099,14 @@
             if (meta.cover) {
                 document.getElementById('noteCoverUrl').value = meta.cover;
                 const prev = document.getElementById('noteCoverPreview');
+                prev.onerror = function () {
+                    prev.style.display = 'none';
+                    prev.removeAttribute('src');
+                    console.warn('封面图无法加载（可能被防盗链），请换封面 URL 或手动指定图片地址。');
+                };
+                prev.onload = function () {
+                    prev.onerror = null;
+                };
                 prev.src = meta.cover;
                 prev.style.display = 'block';
             }
@@ -1101,7 +1156,11 @@
                     return;
                 }
                 applyBookMeta(meta);
-                alert('已填入（来源: ' + meta.source + '）\n\n已按书名从多条结果中择优；若仍不对请改书名或填 ISBN 后再试。');
+                if (!bookMetaHasContent(meta)) {
+                    alert('已匹配到书目（来源: ' + (meta.source || '未知') + '），但该条 API 未返回可用的封面链接、分类或简介，表单里没有可写内容。\n\n请尝试：改书名、填 ISBN，或手动填写封面 URL 与摘要。');
+                } else {
+                    alert('已填入（来源: ' + (meta.source || '未知') + '）\n\n已按书名择优并合并各来源的非空字段；若仍不对请改书名或填 ISBN。');
+                }
             } catch (e) {
                 alert('检索失败：' + (e.message || String(e)));
                 console.error(e);
