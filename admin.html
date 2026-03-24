@@ -424,6 +424,7 @@
                 <div class="form-group">
                     <label>出处</label>
                     <input type="text" id="poemSource" placeholder="静夜思">
+                    <p style="color:#999;font-size:12px;margin-top:6px;">同一本书/篇目可添加多条摘录；新建时会自动生成不重复的文件名。</p>
                 </div>
 
                 <div class="form-group">
@@ -1678,6 +1679,18 @@ ${content}`;
             }
         }
 
+        /** 新建摘录文件名：出处 slug + 时间戳，避免同一出处覆盖同一文件 */
+        function makeNewPoemFilename(source) {
+            const slug = source
+                .replace(/[《》]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/[\\/:*?"<>|]/g, '')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '') || 'poem';
+            const head = slug.length > 60 ? slug.slice(0, 60) : slug;
+            return head + '-' + Date.now() + '.md';
+        }
+
         // 保存诗句
         async function savePoem() {
             const content = document.getElementById('poemContent').value.trim();
@@ -1700,8 +1713,7 @@ date: ${today}`;
             
             fullContent += `\n---\n\n${content}`;
 
-            const filename = currentEditPoem ? currentEditPoem.name : 
-                            (source.replace(/[《》]/g, '').replace(/\s+/g, '-') + '.md');
+            const filename = currentEditPoem ? currentEditPoem.name : makeNewPoemFilename(source);
 
             const config = JSON.parse(localStorage.getItem('githubConfig'));
             const url = `https://api.github.com/repos/${config.username}/${config.repo}/contents/poems/${filename}`;
