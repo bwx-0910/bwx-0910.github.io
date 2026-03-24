@@ -313,8 +313,9 @@
 
         <!-- 内容切换标签 -->
         <div class="content-tabs" id="contentTabs" style="display: none;">
-            <button class="tab-btn active" onclick="switchContent('notes')">📚 读书笔记</button>
-            <button class="tab-btn" onclick="switchContent('poems')">📜 摘录</button>
+            <button type="button" class="tab-btn active" data-tab="notes" onclick="switchContent('notes')">📚 读书笔记</button>
+            <button type="button" class="tab-btn" data-tab="poems" onclick="switchContent('poems')">📜 摘录</button>
+            <button type="button" class="tab-btn" data-tab="diary" onclick="switchContent('diary')">📔 日记</button>
         </div>
 
         <!-- 笔记列表 -->
@@ -329,6 +330,41 @@
             <h2>📜 摘录</h2>
             <button class="btn btn-primary" onclick="showPoemEditor()">+ 添加诗句</button>
             <div id="poemListContent" style="margin-top: 20px;"></div>
+        </div>
+
+        <!-- 日记列表 -->
+        <div class="note-list content-panel" id="diaryList" style="display: none;">
+            <h2>📔 日记</h2>
+            <p style="color: #666; font-size: 14px; margin-bottom: 12px;">按日期一篇，文件名一般为 <code>YYYY-MM-DD.md</code>，适合每天记录。</p>
+            <button class="btn btn-primary" onclick="showDiaryEditor()">+ 写一篇日记</button>
+            <div id="diaryListContent" style="margin-top: 20px;"></div>
+        </div>
+
+        <!-- 日记编辑器 -->
+        <div class="editor-section" id="diaryEditorSection">
+            <div class="setup-section">
+                <h2 id="diaryEditorTitle">✏️ 写日记</h2>
+
+                <div class="form-group">
+                    <label>日期</label>
+                    <input type="date" id="diaryDate">
+                </div>
+
+                <div class="form-group">
+                    <label>标题（可选）</label>
+                    <input type="text" id="diaryTitle" placeholder="如今日随笔、心情等">
+                </div>
+
+                <div class="form-group">
+                    <label>正文（支持 Markdown）</label>
+                    <textarea id="diaryContent" rows="16" placeholder="今天发生了什么……"></textarea>
+                </div>
+
+                <div>
+                    <button class="btn btn-primary" onclick="saveDiary()">💾 保存</button>
+                    <button class="btn btn-secondary" onclick="cancelDiaryEdit()">取消</button>
+                </div>
+            </div>
         </div>
 
         <!-- 诗句编辑器 -->
@@ -439,6 +475,7 @@
     <script>
         let currentEditFile = null;
         let currentEditPoem = null;
+        let currentEditDiary = null;
         let quill = null; // Quill 编辑器实例
         let quotes = []; // 存储书籍摘录
 
@@ -655,24 +692,30 @@
 
         // 切换内容面板
         function switchContent(type) {
-            // 更新标签状态
             document.querySelectorAll('.content-tabs .tab-btn').forEach(btn => {
-                btn.classList.remove('active');
+                btn.classList.toggle('active', btn.getAttribute('data-tab') === type);
             });
-            event.target.classList.add('active');
 
-            // 切换面板
+            document.getElementById('editorSection').classList.remove('active');
+            document.getElementById('poemEditorSection').classList.remove('active');
+            document.getElementById('diaryEditorSection').classList.remove('active');
+
+            const noteList = document.getElementById('noteList');
+            const poemList = document.getElementById('poemList');
+            const diaryList = document.getElementById('diaryList');
+
+            noteList.style.display = 'none';
+            poemList.style.display = 'none';
+            diaryList.style.display = 'none';
+
             if (type === 'notes') {
-                document.getElementById('noteList').classList.add('active');
-                document.getElementById('poemList').classList.remove('active');
-                document.getElementById('noteList').style.display = 'block';
-                document.getElementById('poemList').style.display = 'none';
+                noteList.style.display = 'block';
             } else if (type === 'poems') {
-                document.getElementById('poemList').classList.add('active');
-                document.getElementById('noteList').classList.remove('active');
-                document.getElementById('poemList').style.display = 'block';
-                document.getElementById('noteList').style.display = 'none';
+                poemList.style.display = 'block';
                 loadPoems();
+            } else if (type === 'diary') {
+                diaryList.style.display = 'block';
+                loadDiaries();
             }
         }
 
@@ -757,6 +800,8 @@
         // 显示编辑器
         function showEditor() {
             document.getElementById('editorSection').classList.add('active');
+            document.getElementById('poemEditorSection').classList.remove('active');
+            document.getElementById('diaryEditorSection').classList.remove('active');
             document.getElementById('noteList').style.display = 'none';
             document.getElementById('editorTitle').textContent = '✏️ 新建笔记';
             
@@ -1053,6 +1098,8 @@ ${content}`;
         // 显示诗句编辑器
         function showPoemEditor() {
             document.getElementById('poemEditorSection').classList.add('active');
+            document.getElementById('editorSection').classList.remove('active');
+            document.getElementById('diaryEditorSection').classList.remove('active');
             document.getElementById('poemList').style.display = 'none';
             document.getElementById('poemEditorTitle').textContent = '✏️ 添加诗句';
             
@@ -1345,6 +1392,256 @@ date: ${today}`;
             
             document.getElementById('poemContent').value = '';
             document.getElementById('poemSource').value = '';
+        }
+
+        // ---------- 日记（按日期一篇，diaries/YYYY-MM-DD.md）----------
+
+        async function loadDiaries() {
+            const config = JSON.parse(localStorage.getItem('githubConfig'));
+            const url = `https://api.github.com/repos/${config.username}/${config.repo}/contents/diaries`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `token ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('无法加载日记列表（若首次使用，请在仓库中创建 diaries 文件夹并放入任意文件或空提交）');
+                }
+
+                const files = await response.json();
+                const mdFiles = files.filter(f =>
+                    f.name.endsWith('.md') &&
+                    f.name !== 'README.md' &&
+                    f.name !== '日记模板.md'
+                );
+                mdFiles.sort((a, b) => b.name.localeCompare(a.name));
+
+                displayDiaries(mdFiles);
+            } catch (error) {
+                alert('加载失败：' + error.message);
+                console.error(error);
+            }
+        }
+
+        function displayDiaries(files) {
+            const container = document.getElementById('diaryListContent');
+
+            if (files.length === 0) {
+                container.innerHTML = '<p style="color: #666; padding: 20px;">还没有日记，点击上面按钮写第一篇吧！</p>';
+                return;
+            }
+
+            container.innerHTML = files.map(file => `
+                <div class="note-item">
+                    <div class="note-info">
+                        <div class="note-title">${file.name.replace('.md', '')}</div>
+                        <div class="note-meta">文件: ${file.name}</div>
+                    </div>
+                    <div class="note-actions">
+                        <button class="btn btn-primary btn-small" onclick="editDiary('${file.name}')">编辑</button>
+                        <button class="btn btn-small" style="background: #dc3545; color: white;" onclick="deleteDiary('${file.name}', event)">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showDiaryEditor() {
+            document.getElementById('diaryEditorSection').classList.add('active');
+            document.getElementById('editorSection').classList.remove('active');
+            document.getElementById('poemEditorSection').classList.remove('active');
+            document.getElementById('diaryList').style.display = 'none';
+            document.getElementById('diaryEditorTitle').textContent = '✏️ 写日记';
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('diaryDate').value = today;
+            document.getElementById('diaryTitle').value = '';
+            document.getElementById('diaryContent').value = '';
+            currentEditDiary = null;
+        }
+
+        async function editDiary(filename) {
+            const config = JSON.parse(localStorage.getItem('githubConfig'));
+            const url = `https://api.github.com/repos/${config.username}/${config.repo}/contents/diaries/${filename}`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `token ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                const file = await response.json();
+                const content = decodeURIComponent(escape(atob(file.content)));
+
+                const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+                if (match) {
+                    const frontmatter = match[1];
+                    const body = match[2];
+                    const dateM = frontmatter.match(/date:\s*(.+)/);
+                    const titleM = frontmatter.match(/title:\s*(.+)/);
+                    document.getElementById('diaryDate').value = (dateM && dateM[1] ? dateM[1].trim() : filename.replace('.md', ''));
+                    document.getElementById('diaryTitle').value = titleM && titleM[1] ? titleM[1].trim() : '';
+                    document.getElementById('diaryContent').value = body.trim();
+                }
+
+                currentEditDiary = { name: filename, sha: file.sha };
+
+                document.getElementById('diaryEditorSection').classList.add('active');
+                document.getElementById('diaryList').style.display = 'none';
+                document.getElementById('diaryEditorTitle').textContent = '✏️ 编辑日记: ' + filename;
+            } catch (error) {
+                alert('加载日记失败：' + error.message);
+            }
+        }
+
+        async function saveDiary() {
+            const dateStr = document.getElementById('diaryDate').value;
+            const title = document.getElementById('diaryTitle').value.trim();
+            const body = document.getElementById('diaryContent').value.trim();
+
+            if (!dateStr) {
+                alert('请选择日期');
+                return;
+            }
+            if (!body) {
+                alert('请填写正文');
+                return;
+            }
+
+            const safeTitle = title || '日记';
+            const fullContent = `---
+date: ${dateStr}
+title: ${safeTitle}
+---
+
+${body}`;
+
+            const filename = `${dateStr}.md`;
+            const config = JSON.parse(localStorage.getItem('githubConfig'));
+            const url = `https://api.github.com/repos/${config.username}/${config.repo}/contents/diaries/${filename}`;
+
+            try {
+                if (currentEditDiary && currentEditDiary.name !== filename) {
+                    const delUrl = `https://api.github.com/repos/${config.username}/${config.repo}/contents/diaries/${currentEditDiary.name}`;
+                    const getResp = await fetch(delUrl, {
+                        headers: {
+                            'Authorization': `token ${config.token}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+                    if (getResp.ok) {
+                        const fi = await getResp.json();
+                        await fetch(delUrl, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `token ${config.token}`,
+                                'Accept': 'application/vnd.github.v3+json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                message: `调整日记日期: ${currentEditDiary.name} -> ${filename}`,
+                                sha: fi.sha,
+                                branch: 'main'
+                            })
+                        });
+                    }
+                }
+
+                const data = {
+                    message: `保存日记: ${filename}`,
+                    content: btoa(unescape(encodeURIComponent(fullContent))),
+                    branch: 'main'
+                };
+
+                if (currentEditDiary && currentEditDiary.name === filename) {
+                    data.sha = currentEditDiary.sha;
+                }
+
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.message || '保存失败');
+                }
+
+                alert('✅ 保存成功！\n\n本地请运行 build.bat 更新 data.js，或等待 GitHub 同步后拉取再构建。');
+                cancelDiaryEdit();
+                loadDiaries();
+            } catch (error) {
+                alert('保存失败：' + error.message);
+                console.error(error);
+            }
+        }
+
+        async function deleteDiary(filename, event) {
+            event.stopPropagation();
+
+            if (!confirm(`确定要删除日记「${filename}」吗？\n\n此操作不可恢复！`)) {
+                return;
+            }
+
+            const config = JSON.parse(localStorage.getItem('githubConfig'));
+            const url = `https://api.github.com/repos/${config.username}/${config.repo}/contents/diaries/${filename}`;
+
+            try {
+                const getResponse = await fetch(url, {
+                    headers: {
+                        'Authorization': `token ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (!getResponse.ok) {
+                    throw new Error('无法获取文件信息');
+                }
+
+                const fileInfo = await getResponse.json();
+
+                const deleteResponse = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `token ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `删除日记: ${filename}`,
+                        sha: fileInfo.sha,
+                        branch: 'main'
+                    })
+                });
+
+                if (!deleteResponse.ok) {
+                    throw new Error('删除失败');
+                }
+
+                alert('✅ 删除成功！');
+                loadDiaries();
+            } catch (error) {
+                alert('删除失败：' + error.message);
+                console.error(error);
+            }
+        }
+
+        function cancelDiaryEdit() {
+            document.getElementById('diaryEditorSection').classList.remove('active');
+            document.getElementById('diaryList').style.display = 'block';
+            currentEditDiary = null;
+            document.getElementById('diaryContent').value = '';
+            document.getElementById('diaryTitle').value = '';
         }
 
         // 处理粘贴事件（支持粘贴图片）

@@ -7,6 +7,7 @@ on:
     paths:
       - 'notes/**/*.md'   # 当 notes 目录下的 md 文件改变时触发
       - 'poems/**/*.md'   # 当 poems 目录下的 md 文件改变时触发
+      - 'diaries/**/*.md' # 日记：管理页保存后自动重建 data.js
 
 jobs:
   build:

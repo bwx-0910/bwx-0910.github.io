@@ -43,7 +43,61 @@ function renderAllPosts() {
     renderNotes('all-posts', postsData.notes);
     renderNotes('notes-posts', postsData.notes);
     renderPoems('poems-posts', postsData.poems || []);
+    renderDiaries('diary-posts', postsData.diaries || []);
     renderVideos('videos-posts', postsData.videos);
+}
+
+function escapeHtmlText(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+// 渲染日记（Markdown，按日期一篇）
+function renderDiaries(containerId, diaries) {
+    const container = document.getElementById(containerId);
+
+    if (!diaries || diaries.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📔</div>
+                <p>暂无日记</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = diaries.map(d => {
+        const raw = d.content || '';
+        const len = raw.length;
+        let sizeClass = 'diary-short';
+        if (len > 600) {
+            sizeClass = 'diary-long';
+        } else if (len > 200) {
+            sizeClass = 'diary-medium';
+        }
+
+        let bodyHtml = raw;
+        if (typeof marked !== 'undefined') {
+            bodyHtml = marked.parse(raw);
+        } else {
+            bodyHtml = '<p>' + escapeHtmlText(raw).replace(/\n/g, '</p><p>') + '</p>';
+        }
+
+        const title = d.title || '日记';
+
+        return `
+            <article class="diary-card ${sizeClass}">
+                <header class="diary-header">
+                    <time class="diary-date" datetime="${escapeHtmlText(d.date)}">${escapeHtmlText(d.date)}</time>
+                    <h3 class="diary-title">${escapeHtmlText(title)}</h3>
+                </header>
+                <div class="diary-body">${bodyHtml}</div>
+            </article>
+        `;
+    }).join('');
 }
 
 // 渲染笔记

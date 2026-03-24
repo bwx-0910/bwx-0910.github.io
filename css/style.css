@@ -507,6 +507,98 @@ body {
     font-weight: 600;
 }
 
+/* 日记网格 */
+.diaries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.diary-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f0f4ff 100%);
+    border-radius: 15px;
+    padding: clamp(18px, 2.5vw, 28px);
+    box-shadow: var(--shadow);
+    border-left: 4px solid #5c6bc0;
+    transition: all 0.3s;
+    overflow: hidden;
+}
+
+.diary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+.diary-card.diary-long {
+    grid-column: 1 / -1;
+}
+
+.diary-header {
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.diary-date {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-bottom: 6px;
+}
+
+.diary-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-color);
+    line-height: 1.4;
+}
+
+.diary-body {
+    color: var(--text-light);
+    font-size: 15px;
+    line-height: 1.85;
+    word-wrap: break-word;
+}
+
+.diary-body p {
+    margin-bottom: 0.75em;
+}
+
+.diary-body p:last-child {
+    margin-bottom: 0;
+}
+
+.diary-body ul,
+.diary-body ol {
+    margin: 0.5em 0 0.75em 1.25em;
+}
+
+.diary-body code {
+    background: #eef1f8;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.diary-body pre {
+    background: #f5f5f5;
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.diary-body blockquote {
+    border-left: 3px solid var(--primary-color);
+    padding-left: 14px;
+    margin: 10px 0;
+    color: var(--text-light);
+}
+
 /* 响应式 */
 @media (max-width: 768px) {
     .site-title {
@@ -514,7 +606,8 @@ body {
     }
 
     .posts-grid,
-    .videos-grid {
+    .videos-grid,
+    .diaries-grid {
         grid-template-columns: 1fr;
     }
 

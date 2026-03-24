@@ -103,6 +103,49 @@ def convert_poems_to_js():
     
     return poems
 
+def convert_diaries_to_js():
+    """转换 diaries/*.md 为日记数据（按日期一篇，建议文件名 YYYY-MM-DD.md）"""
+    diaries_dir = Path('diaries')
+
+    if not diaries_dir.exists():
+        print('⚠️  diaries 目录不存在')
+        return []
+
+    diaries = []
+
+    for md_file in diaries_dir.glob('*.md'):
+        if md_file.name in ['README.md', '日记模板.md']:
+            continue
+
+        print(f'📔 处理日记: {md_file.name}')
+
+        try:
+            with open(md_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            frontmatter, diary_body = parse_frontmatter(content)
+
+            if not frontmatter:
+                print(f'  ⚠️  跳过（没有 Front Matter）: {md_file.name}')
+                continue
+
+            diary = {
+                'id': 'diary-' + md_file.stem.lower().replace(' ', '-'),
+                'date': frontmatter.get('date', datetime.now().strftime('%Y-%m-%d')),
+                'title': frontmatter.get('title', '日记'),
+                'content': diary_body.strip()
+            }
+
+            diaries.append(diary)
+            print(f'  ✅ 成功')
+
+        except Exception as e:
+            print(f'  ❌ 错误: {e}')
+
+    diaries.sort(key=lambda x: x['date'], reverse=True)
+
+    return diaries
+
 def convert_notes_to_js():
     """转换所有笔记文件为 JavaScript 数据和独立 HTML 页面"""
     notes_dir = Path('notes')
@@ -163,15 +206,16 @@ def convert_notes_to_js():
     # 按日期排序（最新的在前）
     notes.sort(key=lambda x: x['date'], reverse=True)
     
-    # 转换古诗
+    # 转换古诗与日记
     poems = convert_poems_to_js()
-    
-    # 生成 JavaScript 文件
-    generate_data_js(notes, poems)
-    
-    print(f'\n✅ 转换完成！共处理 {len(notes)} 篇笔记，{len(poems)} 首古诗')
+    diaries = convert_diaries_to_js()
 
-def generate_data_js(notes, poems):
+    # 生成 JavaScript 文件
+    generate_data_js(notes, poems, diaries)
+
+    print(f'\n✅ 转换完成！共处理 {len(notes)} 篇笔记，{len(poems)} 条摘录，{len(diaries)} 篇日记')
+
+def generate_data_js(notes, poems, diaries):
     """生成 data.js 文件"""
     
     # JavaScript 字符串需要转义
@@ -184,7 +228,7 @@ def generate_data_js(notes, poems):
     # 构建 JavaScript 代码
     js_code = '// 数据配置文件\n'
     js_code += '// 此文件由 build.py 自动生成，请勿手动编辑\n'
-    js_code += '// 如需修改，请编辑 notes/*.md 或 poems/*.md 文件，然后运行 build.bat\n\n'
+    js_code += '// 如需修改，请编辑 notes/*.md、poems/*.md 或 diaries/*.md 文件，然后运行 build.bat\n\n'
     js_code += 'const postsData = {\n'
     js_code += '    notes: [\n'
     
@@ -222,6 +266,21 @@ def generate_data_js(notes, poems):
             js_code += ','
         js_code += '\n'
     
+    js_code += '    ],\n'
+    js_code += '    diaries: [\n'
+
+    for i, d in enumerate(diaries):
+        js_code += '        {\n'
+        js_code += f"            id: '{d['id']}',\n"
+        js_code += f"            date: '{d['date']}',\n"
+        js_code += f"            title: '{escape_js_string(d['title'])}',\n"
+        js_code += f"            content: `{escape_js_string(d['content'])}`\n"
+        js_code += '        }'
+
+        if i < len(diaries) - 1:
+            js_code += ','
+        js_code += '\n'
+
     js_code += '    ],\n'
     js_code += '    videos: [\n'
     
