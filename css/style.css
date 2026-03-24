@@ -184,9 +184,29 @@ body {
 }
 
 .post-header {
-    padding: 22px 22px 16px;
+    padding: 0 0 16px;
     background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
     border-bottom: 1px solid var(--border);
+}
+
+.post-cover-wrap {
+    width: 100%;
+    height: 140px;
+    overflow: hidden;
+    background: #f3f4f6;
+    border-radius: 12px 12px 0 0;
+    margin: -1px -1px 0 -1px;
+}
+
+.post-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.post-header-inner {
+    padding: 22px 22px 0;
 }
 
 .post-icon {

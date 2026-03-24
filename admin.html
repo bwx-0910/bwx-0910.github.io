@@ -418,6 +418,23 @@
                 </div>
 
                 <div class="form-group">
+                    <label>ISBN（可选，填写后检索更准）</label>
+                    <input type="text" id="noteIsbn" placeholder="如 9787020002207">
+                </div>
+
+                <div class="form-group">
+                    <label>封面图 URL（可点击下方智能检索自动填充）</label>
+                    <input type="text" id="noteCoverUrl" placeholder="https://...">
+                    <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <button type="button" class="btn btn-primary" id="btnSmartBook" onclick="smartFillBookMeta()">智能检索书目</button>
+                        <span style="color: #666; font-size: 13px;">根据书名或 ISBN 从 Open Library / Google Books 拉取封面、分类、标签与摘要（英文库为主，中文书可多试几种书名）</span>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <img id="noteCoverPreview" alt="封面预览" style="max-height: 160px; max-width: 120px; border-radius: 8px; border: 1px solid #e0e0e0; display: none;">
+                    </div>
+                </div>
+
+                <div class="form-group">
                     <label>图标 Emoji</label>
                     <input type="text" id="noteIcon" value="📖" maxlength="2">
                 </div>
@@ -823,6 +840,164 @@
             quill.setText('');
             
             currentEditFile = null;
+            document.getElementById('noteIsbn').value = '';
+            document.getElementById('noteCoverUrl').value = '';
+            const prev = document.getElementById('noteCoverPreview');
+            prev.style.display = 'none';
+            prev.removeAttribute('src');
+        }
+
+        /** 从书名提取检索用关键词 */
+        function normalizeBookQuery(title) {
+            if (!title) return '';
+            return title
+                .replace(/《|》/g, '')
+                .replace(/读书笔记|读书札记|读后感/g, '')
+                .replace(/：|:.*$/g, '')
+                .trim();
+        }
+
+        /** Open Library 搜索 */
+        async function searchOpenLibrary(q) {
+            if (!q) return null;
+            const url = 'https://openlibrary.org/search.json?q=' + encodeURIComponent(q) + '&limit=8';
+            const r = await fetch(url);
+            if (!r.ok) return null;
+            const j = await r.json();
+            const d = j.docs && j.docs[0];
+            if (!d) return null;
+            const cover = d.cover_i
+                ? 'https://covers.openlibrary.org/b/id/' + d.cover_i + '-M.jpg'
+                : '';
+            let excerpt = '';
+            if (d.first_sentence) {
+                excerpt = Array.isArray(d.first_sentence) ? d.first_sentence[0] : d.first_sentence;
+            } else if (d.subtitle) {
+                excerpt = d.subtitle;
+            }
+            const subjects = (d.subject || []).slice(0, 8);
+            const category = subjects.length ? subjects[0] : '';
+            return { source: 'Open Library', cover, category, subjects, excerpt, title: d.title };
+        }
+
+        /** Google Books 搜索（对中文书名往往更有效） */
+        async function searchGoogleBooks(q) {
+            if (!q) return null;
+            const url = 'https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(q) + '&maxResults=5&langRestrict=zh';
+            const r = await fetch(url);
+            if (!r.ok) return null;
+            const j = await r.json();
+            const item = j.items && j.items[0];
+            if (!item) return null;
+            const vi = item.volumeInfo || {};
+            let cover = '';
+            if (vi.imageLinks) {
+                cover = (vi.imageLinks.thumbnail || vi.imageLinks.smallThumbnail || '').replace(/^http:/, 'https:');
+            }
+            let excerpt = vi.description || vi.subtitle || '';
+            excerpt = excerpt.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            if (excerpt.length > 320) excerpt = excerpt.slice(0, 320) + '…';
+            const cats = vi.categories || [];
+            const subjects = cats.length ? cats : (vi.authors || []).slice(0, 3);
+            const category = cats.length ? cats[0] : (vi.authors && vi.authors[0] ? '著者: ' + vi.authors[0] : '');
+            return {
+                source: 'Google Books',
+                cover,
+                category,
+                subjects,
+                excerpt,
+                title: vi.title
+            };
+        }
+
+        /** ISBN → Open Library（isbn 接口） */
+        async function lookupOpenLibraryIsbn(isbn) {
+            const clean = isbn.replace(/[-\s]/g, '');
+            if (clean.length < 10) return null;
+            const url = 'https://openlibrary.org/isbn/' + encodeURIComponent(clean) + '.json';
+            const r = await fetch(url);
+            if (!r.ok) return null;
+            const book = await r.json();
+            let cover = '';
+            if (book.covers && book.covers[0]) {
+                cover = 'https://covers.openlibrary.org/b/id/' + book.covers[0] + '-M.jpg';
+            }
+            const title = book.title || '';
+            let subjects = [];
+            let excerpt = '';
+            const wkey = book.works && book.works[0] && book.works[0].key;
+            if (wkey) {
+                try {
+                    const wr = await fetch('https://openlibrary.org' + wkey + '.json');
+                    if (wr.ok) {
+                        const work = await wr.json();
+                        subjects = (work.subjects || []).slice(0, 8);
+                        excerpt = (work.first_sentence && work.first_sentence[0]) || work.description || '';
+                        if (typeof excerpt === 'object' && excerpt.value) excerpt = excerpt.value;
+                    }
+                } catch (e) { /* ignore */ }
+            }
+            const category = subjects.length ? subjects[0] : '';
+            return { source: 'Open Library (ISBN)', cover, category, subjects, excerpt, title };
+        }
+
+        function applyBookMeta(meta) {
+            if (meta.cover) {
+                document.getElementById('noteCoverUrl').value = meta.cover;
+                const prev = document.getElementById('noteCoverPreview');
+                prev.src = meta.cover;
+                prev.style.display = 'block';
+            }
+            if (meta.category) {
+                document.getElementById('noteCategory').value = meta.category;
+            }
+            if (meta.subjects && meta.subjects.length) {
+                document.getElementById('noteTags').value = meta.subjects.slice(0, 6).join(', ');
+            }
+            if (meta.excerpt) {
+                document.getElementById('noteExcerpt').value = meta.excerpt;
+            }
+        }
+
+        async function smartFillBookMeta() {
+            const titleRaw = document.getElementById('noteTitle').value.trim();
+            const isbn = document.getElementById('noteIsbn').value.trim();
+            if (!titleRaw && !isbn) {
+                alert('请先填写书名或 ISBN');
+                return;
+            }
+            const btn = document.getElementById('btnSmartBook');
+            btn.disabled = true;
+            const oldText = btn.textContent;
+            btn.textContent = '检索中…';
+            try {
+                let meta = null;
+                if (isbn) {
+                    meta = await lookupOpenLibraryIsbn(isbn);
+                }
+                if (!meta || (!meta.cover && !meta.excerpt && !meta.category)) {
+                    const q = isbn || normalizeBookQuery(titleRaw) || titleRaw;
+                    const o = await searchOpenLibrary(q);
+                    if (o) meta = o;
+                }
+                if (!meta || (!meta.cover && !meta.excerpt && !meta.category)) {
+                    const q = normalizeBookQuery(titleRaw) || titleRaw;
+                    const g = await searchGoogleBooks(q);
+                    if (g) meta = g;
+                }
+                if (!meta) {
+                    alert('未找到可用的书目信息。可尝试：英文书名、去掉副标题，或填写 ISBN。');
+                    return;
+                }
+                applyBookMeta(meta);
+                alert('已填入（来源: ' + meta.source + '）\n\n请按需修改分类与标签；摘要多为英文或简介节选。');
+            } catch (e) {
+                alert('检索失败：' + (e.message || String(e)));
+                console.error(e);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = oldText;
+            }
         }
 
         // 编辑笔记
@@ -854,6 +1029,8 @@
                     const category = frontmatter.match(/category:\s*(.+)/)?.[1] || '';
                     const tags = frontmatter.match(/tags:\s*(.+)/)?.[1] || '';
                     const excerpt = frontmatter.match(/excerpt:\s*(.+)/)?.[1] || '';
+                    const coverLine = frontmatter.match(/^cover:\s*(.+)$/m);
+                    const cover = coverLine ? coverLine[1].trim() : '';
                     
                     // 解析摘录数组
                     const quotesMatch = frontmatter.match(/quotes:\s*(\[[\s\S]*?\])/);
@@ -873,6 +1050,16 @@
                     document.getElementById('noteCategory').value = category;
                     document.getElementById('noteTags').value = tags;
                     document.getElementById('noteExcerpt').value = excerpt;
+                    document.getElementById('noteCoverUrl').value = cover;
+                    document.getElementById('noteIsbn').value = '';
+                    const prev = document.getElementById('noteCoverPreview');
+                    if (cover) {
+                        prev.src = cover;
+                        prev.style.display = 'block';
+                    } else {
+                        prev.style.display = 'none';
+                        prev.removeAttribute('src');
+                    }
                     
                     // 渲染摘录列表
                     renderQuotes();
@@ -900,6 +1087,7 @@
         async function saveNote() {
             const title = document.getElementById('noteTitle').value;
             const icon = document.getElementById('noteIcon').value;
+            const coverUrl = document.getElementById('noteCoverUrl').value.trim();
             const category = document.getElementById('noteCategory').value;
             const tags = document.getElementById('noteTags').value;
             const excerpt = document.getElementById('noteExcerpt').value;
@@ -915,10 +1103,11 @@
             // 生成完整的 Markdown 内容
             const today = new Date().toISOString().split('T')[0];
             const quotesJson = JSON.stringify(quotes);
+            const coverLine = coverUrl ? `cover: ${coverUrl}\n` : '';
             const fullContent = `---
 title: ${title}
 icon: ${icon}
-date: ${today}
+${coverLine}date: ${today}
 category: ${category}
 tags: ${tags}
 excerpt: ${excerpt}
@@ -1038,6 +1227,11 @@ ${content}`;
             document.getElementById('noteCategory').value = '';
             document.getElementById('noteTags').value = '';
             document.getElementById('noteExcerpt').value = '';
+            document.getElementById('noteIsbn').value = '';
+            document.getElementById('noteCoverUrl').value = '';
+            const cprev = document.getElementById('noteCoverPreview');
+            cprev.style.display = 'none';
+            cprev.removeAttribute('src');
             
             // 清空摘录
             quotes = [];

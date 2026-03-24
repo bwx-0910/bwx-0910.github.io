@@ -10,6 +10,7 @@ import re
 import json
 import sys
 import random
+import html as html_module
 import time
 from pathlib import Path
 from datetime import datetime
@@ -188,6 +189,7 @@ def convert_notes_to_js():
                 'category': frontmatter.get('category', '未分类'),
                 'tags': [tag.strip() for tag in frontmatter.get('tags', '').split(',') if tag.strip()],
                 'excerpt': frontmatter.get('excerpt', ''),
+                'cover': frontmatter.get('cover', '').strip(),
                 'content': markdown_content.strip(),
                 'quotes': frontmatter.get('quotes', []),
                 'filename': md_file.stem
@@ -241,6 +243,7 @@ def generate_data_js(notes, poems, diaries):
         js_code += f"            category: '{note['category']}',\n"
         js_code += f"            tags: {json.dumps(note['tags'], ensure_ascii=False)},\n"
         js_code += f"            excerpt: '{escape_js_string(note['excerpt'])}',\n"
+        js_code += f"            cover: '{escape_js_string(note.get('cover', ''))}',\n"
         js_code += f"            content: `\n{escape_js_string(note['content'])}\n            `\n"
         js_code += '        }'
         
@@ -362,7 +365,12 @@ def generate_note_html(note):
         quotes_html += '</div>'
     
     # 替换模板变量
-    html = template.replace('{{TITLE}}', note['title'])
+    cover_html = ''
+    if note.get('cover'):
+        esc = html_module.escape(note['cover'], quote=True)
+        cover_html = f'<div class="note-cover-wrap"><img class="note-cover" src="{esc}" alt="封面" loading="lazy" referrerpolicy="no-referrer"></div>'
+    html = template.replace('{{COVER_HTML}}', cover_html)
+    html = html.replace('{{TITLE}}', note['title'])
     html = html.replace('{{ICON}}', note['icon'])
     html = html.replace('{{DATE}}', note['date'])
     html = html.replace('{{CATEGORY}}', note['category'])

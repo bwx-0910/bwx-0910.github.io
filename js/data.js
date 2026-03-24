@@ -12,6 +12,7 @@ const postsData = {
             category: '心理学',
             tags: ["心理学"],
             excerpt: '1',
+            cover: '',
             content: `
 1
             `
@@ -24,6 +25,7 @@ const postsData = {
             category: '知乎',
             tags: ["1"],
             excerpt: '1',
+            cover: '',
             content: `
 1
             `
@@ -36,6 +38,7 @@ const postsData = {
             category: '心理学',
             tags: ["治愈治愈自己"],
             excerpt: '1',
+            cover: '',
             content: `
 1
             `
@@ -48,6 +51,7 @@ const postsData = {
             category: '科学',
             tags: ["1"],
             excerpt: '1',
+            cover: '',
             content: `
 1
             `
@@ -60,6 +64,7 @@ const postsData = {
             category: '心理学',
             tags: ["1"],
             excerpt: '1',
+            cover: '',
             content: `
 1
             `
@@ -72,6 +77,7 @@ const postsData = {
             category: '哲学',
             tags: ["黑塞"],
             excerpt: '1',
+            cover: '',
             content: `
 1
             `
@@ -84,6 +90,7 @@ const postsData = {
             category: '经济学',
             tags: ["经济学"],
             excerpt: '1',
+            cover: '',
             content: `
 1
             `
@@ -96,6 +103,7 @@ const postsData = {
             category: '心理学',
             tags: ["无"],
             excerpt: '11111',
+            cover: '',
             content: `
 1234567
             `

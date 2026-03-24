@@ -44,6 +44,20 @@ body {
     margin-bottom: 3rem;
 }
 
+.note-cover-wrap {
+    margin: 0 auto 1.25rem;
+    max-width: 200px;
+}
+
+.note-cover {
+    width: 100%;
+    max-height: 280px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
 .note-icon {
     font-size: 4rem;
     margin-bottom: 1rem;

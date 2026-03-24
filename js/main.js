@@ -142,22 +142,29 @@ function renderNotes(containerId, notes) {
         // 生成笔记页面链接
         const noteLink = `note-${note.id.replace('note-', '')}.html`;
         
+        const coverBlock = note.cover
+            ? `<div class="post-cover-wrap"><img class="post-cover-img" src="${escapeHtmlText(note.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer"></div>`
+            : '';
+
         return `
         <a href="${noteLink}" class="post-card-link">
             <div class="post-card">
                 <div class="post-header">
+                    ${coverBlock}
+                    <div class="post-header-inner">
                     <div class="post-icon">${note.icon}</div>
-                    <h3 class="post-title">${note.title}</h3>
+                    <h3 class="post-title">${escapeHtmlText(note.title)}</h3>
                     <div class="post-meta">
-                        <span>📅 ${note.date}</span>
-                        <span>📂 ${note.category}</span>
+                        <span>📅 ${escapeHtmlText(note.date)}</span>
+                        <span>📂 ${escapeHtmlText(note.category)}</span>
+                    </div>
                     </div>
                 </div>
                 <div class="post-excerpt">
-                    ${note.excerpt}
+                    ${escapeHtmlText(note.excerpt || '')}
                 </div>
                 <div class="post-tags">
-                    ${note.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                    ${note.tags.map(tag => `<span class="tag">#${escapeHtmlText(tag)}</span>`).join('')}
                 </div>
             </div>
         </a>
