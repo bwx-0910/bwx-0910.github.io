@@ -8,10 +8,11 @@ if (typeof marked !== 'undefined') {
     });
 }
 
-// DOM 加载完成后初始化
-document.addEventListener('DOMContentLoaded', function() {
+// DOM 加载完成后初始化（视频区异步拉取 bilibili-videos.json）
+document.addEventListener('DOMContentLoaded', async function() {
     initNavigation();
     renderAllPosts();
+    await loadVideoSection();
     initModal();
 });
 
@@ -38,13 +39,36 @@ function initNavigation() {
     });
 }
 
-// 渲染所有文章
+// 渲染所有文章（不含视频区：视频由 loadVideoSection 从 bilibili-videos.json 或回退 data.js）
 function renderAllPosts() {
     renderNotes('all-posts', postsData.notes);
     renderNotes('notes-posts', postsData.notes);
     renderPoems('poems-posts', postsData.poems || []);
     renderDiaries('diary-posts', postsData.diaries || []);
-    renderVideos('videos-posts', postsData.videos);
+}
+
+async function loadVideoSection() {
+    try {
+        const res = await fetch('js/bilibili-videos.json', { cache: 'default' });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.videos && data.videos.length > 0) {
+                const hint = document.getElementById('videos-hint');
+                if (hint && data.updatedAt) {
+                    hint.style.display = 'block';
+                    const t = document.getElementById('videos-updated');
+                    if (t) {
+                        t.textContent = data.updatedAt.replace('T', ' ').replace(/\+08:00$/, '');
+                    }
+                }
+                renderVideos('videos-posts', data.videos);
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn('未加载 bilibili-videos.json，使用 data.js 中的视频列表', e);
+    }
+    renderVideos('videos-posts', postsData.videos || []);
 }
 
 function escapeHtmlText(str) {
@@ -178,10 +202,10 @@ function renderPoems(containerId, poems) {
     }).join('');
 }
 
-// 渲染视频
+// 渲染视频（支持封面图 URL：pic / thumbnailUrl；否则 thumbnail 为 emoji 或 HTML）
 function renderVideos(containerId, videos) {
     const container = document.getElementById(containerId);
-    
+
     if (!videos || videos.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
@@ -192,24 +216,36 @@ function renderVideos(containerId, videos) {
         return;
     }
 
-    container.innerHTML = videos.map(video => `
+    container.innerHTML = videos.map((video) => {
+        const pic = video.pic || video.thumbnailUrl || '';
+        const thumbHtml = pic
+            ? `<img src="${escapeHtmlText(pic)}" alt="" class="video-thumb-img" loading="lazy" referrerpolicy="no-referrer">`
+            : `<span class="video-thumb-fallback">${video.thumbnail || '🎬'}</span>`;
+        const tags = video.tags || [];
+        const tagHtml = tags.map((tag) => `<span class="tag">#${escapeHtmlText(tag)}</span>`).join('');
+        const safeUrl = /^https:\/\/www\.bilibili\.com\/video\//.test(video.url || '')
+            || /^https:\/\/(www\.)?youtube\.com\//.test(video.url || '')
+            || /^https:\/\/youtu\.be\//.test(video.url || '')
+            ? video.url
+            : (video.url || '#');
+
+        return `
         <div class="video-card">
-            <div class="video-thumbnail">
-                ${video.thumbnail}
-            </div>
+            <a href="${escapeHtmlText(safeUrl)}" target="_blank" rel="noopener noreferrer" class="video-thumb-link">
+                <div class="video-thumbnail">${thumbHtml}</div>
+            </a>
             <div class="video-info">
-                <h3 class="video-title">${video.title}</h3>
+                <h3 class="video-title">${escapeHtmlText(video.title)}</h3>
                 <div class="post-meta">
-                    <span>📅 ${video.date}</span>
+                    <span>📅 ${escapeHtmlText(video.date || '')}</span>
                 </div>
-                <p class="video-description">${video.description}</p>
-                <div class="post-tags">
-                    ${video.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
-                </div>
-                <a href="${video.url}" target="_blank" class="video-link">观看视频 →</a>
+                <p class="video-description">${escapeHtmlText(video.description || '')}</p>
+                <div class="post-tags">${tagHtml}</div>
+                <a href="${escapeHtmlText(safeUrl)}" target="_blank" rel="noopener noreferrer" class="video-link">打开视频</a>
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
 }
 
 // 显示文章详情
