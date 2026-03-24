@@ -1,0 +1,11 @@
+---
+description: 在本仓库完成修改后自动提交并推送，无需用户重复提醒
+alwaysApply: true
+---
+
+# Git：改完即推送
+
+- **Git 仓库即本目录**（`blog/`）。所有 `git` 命令在此目录执行。
+- 每当**完成**对用户有意义的代码或内容修改（非临时调试）后，在会话内**主动**执行：`git add` 相关文件、`git commit`（简短中文说明）、`git pull --rebase origin main`（如有需要）、`git push origin main`。
+- 不要将 `__pycache__`、密钥或未跟踪垃圾文件加入提交。
+- **不要**等用户说「推送」才推送；用户已要求改完后自行推送。
