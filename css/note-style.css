@@ -1,4 +1,8 @@
-/* 独立笔记页面样式 */
+/* 独立笔记页面样式 — 与首页白色系一致 */
+
+body {
+    background: #f7f7f8;
+}
 
 .note-nav {
     display: flex;
@@ -6,27 +10,28 @@
     align-items: center;
     padding: 1rem 0;
     margin-bottom: 2rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .back-link, .admin-link {
     text-decoration: none;
-    color: #007bff;
+    color: #6b7280;
     font-size: 0.95rem;
-    transition: color 0.3s;
+    transition: color 0.2s;
 }
 
 .back-link:hover, .admin-link:hover {
-    color: #0056b3;
+    color: #1f2937;
 }
 
 /* 笔记文章容器 */
 .note-article {
     max-width: 800px;
     margin: 0 auto;
-    background: white;
+    background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
     padding: 3rem;
     margin-bottom: 2rem;
 }
@@ -46,10 +51,11 @@
 
 .note-title {
     font-size: 2.5rem;
-    color: #2c3e50;
+    color: #1f2937;
     margin-bottom: 1rem;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.3;
+    letter-spacing: 0.02em;
 }
 
 .note-meta {
@@ -75,12 +81,13 @@
 }
 
 .note-tags .tag {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 0.4rem 1rem;
-    border-radius: 20px;
+    background: #f3f4f6;
+    color: #6b7280;
+    padding: 0.4rem 0.85rem;
+    border-radius: 8px;
     font-size: 0.85rem;
     font-weight: 500;
+    border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* 笔记内容 */
@@ -96,25 +103,25 @@
 .note-content h3 {
     margin-top: 2rem;
     margin-bottom: 1rem;
-    color: #2c3e50;
+    color: #1f2937;
     font-weight: 600;
 }
 
 .note-content h1 {
     font-size: 2rem;
-    border-bottom: 2px solid #007bff;
+    border-bottom: 1px solid #e5e7eb;
     padding-bottom: 0.5rem;
 }
 
 .note-content h2 {
     font-size: 1.6rem;
-    border-left: 4px solid #007bff;
+    border-left: 3px solid #d1d5db;
     padding-left: 1rem;
 }
 
 .note-content h3 {
     font-size: 1.3rem;
-    color: #555;
+    color: #4b5563;
 }
 
 .note-content p {
@@ -122,17 +129,18 @@
     text-align: justify;
 }
 
-/* 摘录/引用样式 - 重点优化 */
+/* 摘录/引用样式 */
 .note-content blockquote {
     position: relative;
     margin: 2rem 0;
     padding: 1.5rem 2rem 1.5rem 3rem;
-    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-    border-left: 5px solid #e17055;
+    background: #fafafa;
+    border-left: 3px solid #d1d5db;
     border-radius: 8px;
     font-style: italic;
-    color: #2d3436;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    color: #4b5563;
+    box-shadow: none;
+    border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .note-content blockquote::before {
@@ -189,26 +197,25 @@
 
 /* 强调 */
 .note-content strong {
-    color: #e74c3c;
-    font-weight: 700;
+    color: #1f2937;
+    font-weight: 600;
 }
 
 .note-content em {
-    color: #3498db;
+    color: #6b7280;
     font-style: italic;
 }
 
 /* 链接 */
 .note-content a {
-    color: #007bff;
-    text-decoration: none;
-    border-bottom: 1px dashed #007bff;
-    transition: all 0.3s;
+    color: #374151;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: opacity 0.2s;
 }
 
 .note-content a:hover {
-    color: #0056b3;
-    border-bottom-style: solid;
+    opacity: 0.75;
 }
 
 /* 底部 */
@@ -219,18 +226,19 @@
 
 .btn-back {
     display: inline-block;
-    padding: 0.8rem 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    padding: 0.75rem 1.75rem;
+    background: #1f2937;
+    color: #fff;
     text-decoration: none;
-    border-radius: 25px;
+    border-radius: 10px;
     font-weight: 500;
-    transition: transform 0.3s, box-shadow 0.3s;
+    font-size: 0.95rem;
+    transition: opacity 0.2s, transform 0.2s;
 }
 
 .btn-back:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
 
 /* 标签导航 */
@@ -257,14 +265,14 @@
 }
 
 .tab-btn:hover {
-    color: #667eea;
-    background: #f8f9fa;
+    color: #1f2937;
+    background: #f9fafb;
 }
 
 .tab-btn.active {
-    color: #667eea;
-    border-bottom-color: #667eea;
-    background: #f8f9fa;
+    color: #1f2937;
+    border-bottom-color: #d1d5db;
+    background: #fafafa;
 }
 
 /* 标签内容 */
@@ -372,17 +380,17 @@
     white-space: pre-line;
 }
 
-/* 渐变色彩集合 */
-.quote-color-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-.quote-color-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
-.quote-color-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
-.quote-color-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: rgba(0,0,0,0.8); }
-.quote-color-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: rgba(0,0,0,0.8); }
-.quote-color-6 { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); color: white; }
-.quote-color-7 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: rgba(0,0,0,0.8); }
-.quote-color-8 { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: rgba(0,0,0,0.8); }
-.quote-color-9 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: rgba(0,0,0,0.8); }
-.quote-color-10 { background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%); color: rgba(0,0,0,0.8); }
+/* 摘录卡片：浅灰白系，略有层次 */
+.quote-color-1 { background: #fafafa; color: #374151; border: 1px solid #eee; }
+.quote-color-2 { background: #f9fafb; color: #374151; border: 1px solid #e5e7eb; }
+.quote-color-3 { background: #ffffff; color: #374151; border: 1px solid #e5e7eb; }
+.quote-color-4 { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+.quote-color-5 { background: #fafafa; color: #4b5563; border: 1px solid #e5e7eb; }
+.quote-color-6 { background: #f9fafb; color: #4b5563; border: 1px solid #eee; }
+.quote-color-7 { background: #ffffff; color: #4b5563; border: 1px solid #eee; }
+.quote-color-8 { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+.quote-color-9 { background: #fafafa; color: #374151; border: 1px solid #e5e7eb; }
+.quote-color-10 { background: #f9fafb; color: #374151; border: 1px solid #eee; }
 
 /* 响应式 */
 @media (max-width: 768px) {

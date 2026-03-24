@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>笔记管理后台</title>
+    <title>管理 · 小瑄的生活记录</title>
     <!-- 网站图标 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✏️</text></svg>">
     
@@ -20,7 +20,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #f5f7fa;
+            background: #f7f7f8;
             padding: 20px;
         }
 
@@ -30,11 +30,13 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: #ffffff;
+            color: #1f2937;
             padding: 30px;
-            border-radius: 15px;
+            border-radius: 12px;
             margin-bottom: 30px;
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
 
         .header h1 {
@@ -100,13 +102,14 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1f2937;
             color: white;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
+            opacity: 0.92;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
         }
 
         .btn-secondary {
@@ -239,8 +242,8 @@
         }
 
         .content-tabs .tab-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: #1f2937;
+            color: #fff;
             border-color: transparent;
         }
 
@@ -264,8 +267,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📝 笔记管理后台</h1>
-            <p>在线编辑和管理你的读书笔记</p>
+            <h1>内容管理</h1>
+            <p>编辑笔记、摘录与日记</p>
         </div>
 
         <!-- GitHub 设置 -->

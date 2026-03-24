@@ -1,4 +1,4 @@
-/* 全局样式 */
+/* 全局样式 — 白色系 · 简洁 */
 * {
     margin: 0;
     padding: 0;
@@ -6,80 +6,105 @@
 }
 
 :root {
-    --primary-color: #667eea;
-    --secondary-color: #764ba2;
-    --text-color: #333;
-    --text-light: #666;
-    --bg-color: #f5f7fa;
+    --primary-color: #3d3d3d;
+    --accent: #6b7280;
+    --accent-soft: #e5e7eb;
+    --text-color: #1f2937;
+    --text-light: #6b7280;
+    --bg-color: #f7f7f8;
     --card-bg: #ffffff;
-    --shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    --shadow-hover: 0 5px 20px rgba(0, 0, 0, 0.1);
+    --border: rgba(0, 0, 0, 0.06);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
+    --shadow-hover: 0 4px 6px rgba(0, 0, 0, 0.05), 0 12px 24px rgba(0, 0, 0, 0.06);
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    line-height: 1.6;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.65;
     color: var(--text-color);
     background: var(--bg-color);
+    -webkit-font-smoothing: antialiased;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1120px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 24px;
 }
 
 /* 头部 */
 .header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: white;
-    padding: 40px 0 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background: var(--card-bg);
+    color: var(--text-color);
+    padding: 36px 0 24px;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
 }
 
 .header-content {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 28px;
 }
 
 .site-title {
-    font-size: 36px;
-    margin-bottom: 10px;
-    font-weight: 700;
+    font-size: clamp(1.5rem, 4vw, 1.85rem);
+    margin-bottom: 8px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--text-color);
 }
 
 .site-subtitle {
-    font-size: 18px;
-    opacity: 0.9;
+    font-size: 0.95rem;
+    color: var(--text-light);
+    font-weight: 400;
+    letter-spacing: 0.06em;
 }
 
 /* 导航 */
 .nav {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
 }
 
 .nav-link {
-    color: white;
+    color: var(--text-light);
     text-decoration: none;
-    padding: 10px 20px;
-    border-radius: 25px;
-    transition: all 0.3s;
-    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 999px;
+    transition: background 0.2s, color 0.2s;
+    background: transparent;
+    font-size: 0.9rem;
+    border: 1px solid transparent;
 }
 
-.nav-link:hover,
+.nav-link:hover {
+    color: var(--text-color);
+    background: #f3f4f6;
+}
+
 .nav-link.active {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateY(-2px);
+    color: var(--text-color);
+    background: #f3f4f6;
+    border-color: var(--accent-soft);
+    font-weight: 500;
+}
+
+.nav-link.nav-link--admin {
+    background: #fafafa;
+    border: 1px solid var(--border);
+}
+
+.nav-link.nav-link--admin:hover {
+    background: #f3f4f6;
 }
 
 /* 主内容 */
 .main {
-    padding: 40px 0;
-    min-height: calc(100vh - 300px);
+    padding: 36px 0 48px;
+    min-height: calc(100vh - 280px);
 }
 
 .content-section {
@@ -88,13 +113,13 @@ body {
 
 .content-section.active {
     display: block;
-    animation: fadeIn 0.5s ease-in;
+    animation: fadeIn 0.45s ease;
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(8px);
     }
     to {
         opacity: 1;
@@ -105,15 +130,15 @@ body {
 /* 文章网格 */
 .posts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 22px;
     margin-bottom: 40px;
 }
 
 .videos-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 22px;
     margin-bottom: 40px;
 }
 
@@ -127,98 +152,104 @@ body {
 /* 文章卡片 */
 .post-card {
     background: var(--card-bg);
-    border-radius: 15px;
+    border-radius: 12px;
     overflow: hidden;
+    border: 1px solid var(--border);
     box-shadow: var(--shadow);
-    transition: all 0.3s;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
     cursor: pointer;
 }
 
 .post-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-hover);
 }
 
 .post-header {
-    padding: 25px;
-    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    padding: 22px 22px 16px;
+    background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
+    border-bottom: 1px solid var(--border);
 }
 
 .post-icon {
-    font-size: 40px;
-    margin-bottom: 15px;
+    font-size: 32px;
+    margin-bottom: 10px;
+    opacity: 0.9;
 }
 
 .post-title {
-    font-size: 22px;
-    margin-bottom: 10px;
+    font-size: 1.125rem;
+    margin-bottom: 8px;
     color: var(--text-color);
     font-weight: 600;
+    line-height: 1.45;
 }
 
 .post-meta {
     display: flex;
-    gap: 15px;
-    font-size: 14px;
+    gap: 12px;
+    font-size: 13px;
     color: var(--text-light);
-    margin-bottom: 15px;
+    margin-bottom: 0;
 }
 
 .post-excerpt {
-    padding: 0 25px 25px;
+    padding: 16px 22px 20px;
     color: var(--text-light);
-    font-size: 15px;
-    line-height: 1.8;
+    font-size: 14px;
+    line-height: 1.75;
 }
 
 .post-tags {
-    padding: 0 25px 25px;
+    padding: 0 22px 20px;
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
 }
 
 .tag {
-    background: #e8eaf6;
-    color: var(--primary-color);
-    padding: 5px 12px;
-    border-radius: 15px;
+    background: #f3f4f6;
+    color: var(--text-light);
+    padding: 4px 10px;
+    border-radius: 6px;
     font-size: 12px;
+    border: 1px solid var(--border);
 }
 
 /* 视频卡片 */
 .video-card {
     background: var(--card-bg);
-    border-radius: 15px;
+    border-radius: 12px;
     overflow: hidden;
+    border: 1px solid var(--border);
     box-shadow: var(--shadow);
-    transition: all 0.3s;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .video-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-hover);
 }
 
 .video-thumbnail {
     width: 100%;
-    height: 250px;
+    height: 220px;
     object-fit: cover;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(145deg, #f3f4f6 0%, #e5e7eb 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 60px;
+    color: #9ca3af;
+    font-size: 48px;
 }
 
 .video-info {
-    padding: 20px;
+    padding: 20px 22px 22px;
 }
 
 .video-title {
-    font-size: 20px;
-    margin-bottom: 10px;
+    font-size: 1.05rem;
+    margin-bottom: 8px;
     color: var(--text-color);
     font-weight: 600;
 }
@@ -226,60 +257,67 @@ body {
 .video-description {
     color: var(--text-light);
     font-size: 14px;
-    line-height: 1.6;
-    margin-bottom: 15px;
+    line-height: 1.65;
+    margin-bottom: 14px;
 }
 
 .video-link {
     display: inline-block;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: white;
-    padding: 10px 20px;
+    background: var(--text-color);
+    color: #fff;
+    padding: 8px 16px;
     border-radius: 8px;
     text-decoration: none;
-    transition: transform 0.2s;
+    font-size: 14px;
+    transition: opacity 0.2s;
 }
 
 .video-link:hover {
-    transform: scale(1.05);
+    opacity: 0.88;
 }
 
 /* 关于页面 */
 .about-card {
     background: var(--card-bg);
-    padding: 40px;
-    border-radius: 15px;
+    padding: 36px 40px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
     box-shadow: var(--shadow);
-    max-width: 800px;
+    max-width: 640px;
     margin: 0 auto;
 }
 
 .about-card h2 {
-    color: var(--primary-color);
-    margin-bottom: 20px;
-    font-size: 28px;
+    color: var(--text-color);
+    margin-bottom: 16px;
+    font-size: 1.35rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
 }
 
 .about-card h3 {
     color: var(--text-color);
-    margin-top: 30px;
-    margin-bottom: 15px;
-    font-size: 22px;
+    margin-top: 24px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    font-weight: 600;
 }
 
 .about-card p {
     color: var(--text-light);
-    line-height: 1.8;
-    margin-bottom: 15px;
+    line-height: 1.85;
+    margin-bottom: 12px;
+    font-size: 15px;
 }
 
 .about-card a {
-    color: var(--primary-color);
-    text-decoration: none;
+    color: var(--text-color);
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .about-card a:hover {
-    text-decoration: underline;
+    opacity: 0.75;
 }
 
 /* 模态框 */
@@ -291,8 +329,9 @@ body {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    animation: fadeIn 0.3s;
+    background-color: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.25s ease;
     overflow-y: auto;
 }
 
@@ -305,19 +344,21 @@ body {
 
 .modal-content {
     background: var(--card-bg);
-    padding: 40px;
-    border-radius: 15px;
+    padding: 36px;
+    border-radius: 12px;
     max-width: 800px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
-    animation: slideUp 0.3s;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-hover);
+    animation: slideUp 0.3s ease;
 }
 
 @keyframes slideUp {
     from {
-        transform: translateY(50px);
+        transform: translateY(16px);
         opacity: 0;
     }
     to {
@@ -328,70 +369,72 @@ body {
 
 .close {
     position: absolute;
-    right: 20px;
-    top: 20px;
-    font-size: 32px;
+    right: 16px;
+    top: 16px;
+    font-size: 26px;
     color: var(--text-light);
     cursor: pointer;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    transition: all 0.2s;
+    border-radius: 8px;
+    transition: background 0.2s;
 }
 
 .close:hover {
-    background: #f0f0f0;
+    background: #f3f4f6;
     color: var(--text-color);
 }
 
 #modal-body h1 {
     color: var(--text-color);
-    margin-bottom: 20px;
-    font-size: 32px;
+    margin-bottom: 16px;
+    font-size: 28px;
 }
 
 #modal-body h2 {
     color: var(--text-color);
-    margin-top: 30px;
-    margin-bottom: 15px;
-    font-size: 24px;
+    margin-top: 24px;
+    margin-bottom: 12px;
+    font-size: 20px;
 }
 
 #modal-body p {
     color: var(--text-light);
     line-height: 1.8;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 #modal-body ul,
 #modal-body ol {
-    margin-left: 25px;
-    margin-bottom: 15px;
+    margin-left: 22px;
+    margin-bottom: 12px;
     color: var(--text-light);
 }
 
 #modal-body code {
-    background: #f5f5f5;
+    background: #f3f4f6;
     padding: 2px 6px;
     border-radius: 4px;
-    font-family: 'Courier New', monospace;
+    font-family: ui-monospace, monospace;
+    font-size: 0.9em;
 }
 
 #modal-body pre {
-    background: #f5f5f5;
-    padding: 15px;
+    background: #f9fafb;
+    padding: 14px;
     border-radius: 8px;
     overflow-x: auto;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
 }
 
 #modal-body blockquote {
-    border-left: 4px solid var(--primary-color);
-    padding-left: 20px;
-    margin: 20px 0;
+    border-left: 3px solid var(--accent-soft);
+    padding-left: 16px;
+    margin: 16px 0;
     color: var(--text-light);
     font-style: italic;
 }
@@ -399,134 +442,121 @@ body {
 /* 底部 */
 .footer {
     background: var(--card-bg);
-    padding: 30px 0;
+    padding: 28px 0;
     text-align: center;
     color: var(--text-light);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-    margin-top: 60px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
 }
 
 .footer p {
-    margin: 5px 0;
+    margin: 4px 0;
 }
 
 /* 空状态 */
 .empty-state {
     text-align: center;
-    padding: 80px 20px;
+    padding: 72px 20px;
     color: var(--text-light);
 }
 
 .empty-icon {
-    font-size: 80px;
-    margin-bottom: 20px;
-    opacity: 0.5;
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.35;
 }
 
-/* 古诗网格 */
+/* 摘录网格 */
 .poems-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 25px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
     margin-bottom: 40px;
 }
 
-/* 古诗卡片 */
+/* 摘录卡片 — 白底细边框 */
 .poem-card {
-    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-    border-radius: 15px;
-    /* 自适应内边距 */
-    padding: clamp(20px, 3vw, 35px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    transition: all 0.3s;
-    border-left: 5px solid #e17055;
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: clamp(20px, 3vw, 28px);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    border-left: 3px solid #d1d5db;
     position: relative;
     overflow: hidden;
 }
 
-/* 短诗句：正常宽度 */
-.poem-card.poem-short {
-    /* 默认 grid 布局 */
-}
-
-/* 中等诗句：正常宽度 */
-.poem-card.poem-medium {
-    /* 默认 grid 布局 */
-}
-
-/* 长诗句：独占一整行 */
 .poem-card.poem-long {
     grid-column: 1 / -1;
 }
 
 .poem-image {
     width: 100%;
-    max-height: 300px;
+    max-height: 280px;
     object-fit: cover;
     border-radius: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
 }
 
 .poem-card::before {
     content: '"';
     position: absolute;
-    left: 15px;
-    top: 10px;
-    /* 自适应引号大小 */
-    font-size: clamp(40px, 5vw, 60px);
-    color: rgba(0,0,0,0.1);
+    left: 14px;
+    top: 8px;
+    font-size: clamp(36px, 4vw, 48px);
+    color: rgba(0, 0, 0, 0.06);
     font-family: Georgia, serif;
 }
 
 .poem-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
 }
 
 .poem-quote {
-    /* 自适应字体大小 */
-    font-size: clamp(1rem, 2vw, 1.4rem);
-    line-height: 2;
-    color: #2d3436;
-    font-family: 'STKaiti', 'KaiTi', serif;
+    font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+    line-height: 1.95;
+    color: #374151;
+    font-family: "STKaiti", "KaiTi", "PingFang SC", serif;
     font-weight: 500;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     font-style: italic;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    /* 保留换行和空格，实现段落分隔 */
     white-space: pre-line;
 }
 
 .poem-source {
     text-align: right;
-    /* 自适应字体大小 */
-    font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-    color: #636e72;
-    font-family: 'STKaiti', 'KaiTi', serif;
-    font-weight: 600;
+    font-size: 0.875rem;
+    color: #9ca3af;
+    font-family: "STKaiti", "KaiTi", serif;
+    font-weight: 500;
 }
 
 /* 日记网格 */
 .diaries-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 25px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
     margin-bottom: 40px;
 }
 
 .diary-card {
-    background: linear-gradient(145deg, #ffffff 0%, #f0f4ff 100%);
-    border-radius: 15px;
-    padding: clamp(18px, 2.5vw, 28px);
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: clamp(18px, 2.5vw, 26px);
+    border: 1px solid var(--border);
     box-shadow: var(--shadow);
-    border-left: 4px solid #5c6bc0;
-    transition: all 0.3s;
+    border-left: 3px solid #d1d5db;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
     overflow: hidden;
 }
 
 .diary-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-hover);
 }
 
@@ -535,22 +565,22 @@ body {
 }
 
 .diary-header {
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     padding-bottom: 12px;
-    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+    border-bottom: 1px solid var(--border);
 }
 
 .diary-date {
     display: block;
-    font-size: 0.85rem;
-    color: var(--primary-color);
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    margin-bottom: 6px;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
 }
 
 .diary-title {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     font-weight: 600;
     color: var(--text-color);
     line-height: 1.4;
@@ -558,13 +588,13 @@ body {
 
 .diary-body {
     color: var(--text-light);
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.85;
     word-wrap: break-word;
 }
 
 .diary-body p {
-    margin-bottom: 0.75em;
+    margin-bottom: 0.65em;
 }
 
 .diary-body p:last-child {
@@ -573,27 +603,28 @@ body {
 
 .diary-body ul,
 .diary-body ol {
-    margin: 0.5em 0 0.75em 1.25em;
+    margin: 0.4em 0 0.65em 1.2em;
 }
 
 .diary-body code {
-    background: #eef1f8;
+    background: #f3f4f6;
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.9em;
 }
 
 .diary-body pre {
-    background: #f5f5f5;
+    background: #f9fafb;
     padding: 12px;
     border-radius: 8px;
     overflow-x: auto;
     margin: 10px 0;
-    font-size: 14px;
+    font-size: 13px;
+    border: 1px solid var(--border);
 }
 
 .diary-body blockquote {
-    border-left: 3px solid var(--primary-color);
+    border-left: 3px solid var(--accent-soft);
     padding-left: 14px;
     margin: 10px 0;
     color: var(--text-light);
@@ -601,47 +632,38 @@ body {
 
 /* 响应式 */
 @media (max-width: 768px) {
-    .site-title {
-        font-size: 28px;
-    }
-
     .posts-grid,
     .videos-grid,
-    .diaries-grid {
+    .diaries-grid,
+    .poems-grid {
         grid-template-columns: 1fr;
     }
 
     .modal-content {
-        padding: 30px 20px;
+        padding: 28px 20px;
     }
 
     .nav {
-        gap: 5px;
+        gap: 6px;
     }
 
     .nav-link {
-        padding: 8px 15px;
-        font-size: 14px;
+        padding: 7px 12px;
+        font-size: 0.85rem;
     }
-    
-    .poems-grid {
-        flex-direction: column;
-    }
-    
+
     .poem-card,
     .poem-card.poem-short,
     .poem-card.poem-medium,
     .poem-card.poem-long {
-        flex: 1 1 100%;
         min-width: 100%;
-        max-width: 100%;
     }
 }
 
 /* 加载动画 */
 .loading {
     text-align: center;
-    padding: 60px 20px;
+    padding: 48px 20px;
     color: var(--text-light);
 }
 
