@@ -264,6 +264,12 @@ const postsData = {
         }
     ],
     diaries: [
+        {
+            id: 'diary-2026-03-24',
+            date: '2026-03-24',
+            title: '1',
+            content: `1`
+        }
     ],
     videos: [
 {
