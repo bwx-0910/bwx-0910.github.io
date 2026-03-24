@@ -5,6 +5,19 @@
 const postsData = {
     notes: [
         {
+            id: 'note-别想太多啦',
+            title: '别想太多啦',
+            icon: '📖',
+            date: '2026-03-24',
+            category: 'Conduct of life',
+            tags: ["Conduct of life"],
+            excerpt: '在复杂的世界里, 做一个简单的人',
+            cover: '',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-也许你该找个人聊聊',
             title: '也许你该找个人聊聊',
             icon: '📖',
@@ -49,19 +62,6 @@ const postsData = {
             icon: '📖',
             date: '2026-02-04',
             category: '科学',
-            tags: ["1"],
-            excerpt: '1',
-            cover: '',
-            content: `
-1
-            `
-        },
-        {
-            id: 'note-别想太多啦',
-            title: '别想太多啦',
-            icon: '📖',
-            date: '2026-02-03',
-            category: '心理学',
             tags: ["1"],
             excerpt: '1',
             cover: '',
