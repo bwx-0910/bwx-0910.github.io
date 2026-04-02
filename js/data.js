@@ -8,7 +8,7 @@ const postsData = {
             id: 'note-亲密关系',
             title: '亲密关系',
             icon: '📖',
-            date: '2026-03-31',
+            date: '2026-04-02',
             category: '心理学',
             tags: ["心理学"],
             excerpt: '1',
