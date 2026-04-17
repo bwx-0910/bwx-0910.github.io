@@ -150,6 +150,13 @@ const postsData = {
     ],
     poems: [
         {
+            id: 'poem-wx-1776416597613',
+            source: 'wx',
+            date: '2026-04-17',
+            image: '',
+            content: `你是我平淡生活中出现的光`
+        },
+        {
             id: 'poem-淮上与友人别',
             source: '淮上与友人别',
             date: '2026-03-23',
