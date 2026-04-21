@@ -549,9 +549,9 @@ const postsData = {
         {
             id: 'diary-2026-04-21',
             date: '2026-04-21',
-            title: '信',
+            title: '我想听你说你喜欢我',
             locked: true,
-            content: `ENC1:AbPhU2SxhUAHNT6KBB3WfZCDV8sI9HFj0ATofnzWKDoItx8xFPOvZrj3btjJyXqNJsFao069XWynmzzpSf-my0linHwjt662g6zJKaTmpNl2p7BdXxl6A7s6t-jppTEuGyiVxx090aeQ3N8r`
+            content: `ENC1:AUTcN3ZAWNnAhR5pwp-BzZbuhVuGh5O-VMjg4rVe2UhUylAfRbbbPODJsQ38hw`
         },
         {
             id: 'diary-2026-04-07',
