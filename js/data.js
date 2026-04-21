@@ -348,6 +348,13 @@ const postsData = {
     ],
     diaries: [
         {
+            id: 'diary-2026-04-21',
+            date: '2026-04-21',
+            title: '信',
+            locked: true,
+            content: `ENC1:AbPhU2SxhUAHNT6KBB3WfZCDV8sI9HFj0ATofnzWKDoItx8xFPOvZrj3btjJyXqNJsFao069XWynmzzpSf-my0linHwjt662g6zJKaTmpNl2p7BdXxl6A7s6t-jppTEuGyiVxx090aeQ3N8r`
+        },
+        {
             id: 'diary-2026-04-07',
             date: '2026-04-07',
             title: '关系加深的清明假期',
