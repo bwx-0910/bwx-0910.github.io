@@ -5,6 +5,19 @@
 const postsData = {
     notes: [
         {
+            id: 'note-围城',
+            title: '围城',
+            icon: '📖',
+            date: '2026-04-27',
+            category: '文学',
+            tags: ["钱钟书"],
+            excerpt: '1',
+            cover: '',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-解忧杂货店',
             title: '解忧杂货店',
             icon: '📖',
