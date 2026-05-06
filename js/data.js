@@ -5,6 +5,19 @@
 const postsData = {
     notes: [
         {
+            id: 'note-悉达多',
+            title: '悉达多',
+            icon: '📖',
+            date: '2026-05-06',
+            category: '哲学',
+            tags: ["黑塞"],
+            excerpt: '1',
+            cover: '',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-围城',
             title: '围城',
             icon: '📖',
