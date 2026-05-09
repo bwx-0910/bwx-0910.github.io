@@ -5,12 +5,12 @@
 const postsData = {
     notes: [
         {
-            id: 'note-悉达多',
-            title: '悉达多',
+            id: 'note-围城',
+            title: '围城',
             icon: '📖',
-            date: '2026-05-06',
-            category: '哲学',
-            tags: ["黑塞"],
+            date: '2026-05-09',
+            category: '文学',
+            tags: ["钱钟书"],
             excerpt: '1',
             cover: '',
             content: `
@@ -18,12 +18,12 @@ const postsData = {
             `
         },
         {
-            id: 'note-围城',
-            title: '围城',
+            id: 'note-悉达多',
+            title: '悉达多',
             icon: '📖',
-            date: '2026-04-28',
-            category: '文学',
-            tags: ["钱钟书"],
+            date: '2026-05-06',
+            category: '哲学',
+            tags: ["黑塞"],
             excerpt: '1',
             cover: '',
             content: `
