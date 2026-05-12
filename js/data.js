@@ -5,6 +5,19 @@
 const postsData = {
     notes: [
         {
+            id: 'note-围城1',
+            title: '围城1',
+            icon: '📖',
+            date: '2026-05-12',
+            category: '',
+            tags: [],
+            excerpt: '1',
+            cover: '',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-围城',
             title: '围城',
             icon: '📖',
