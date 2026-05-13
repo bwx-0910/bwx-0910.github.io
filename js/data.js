@@ -5,6 +5,19 @@
 const postsData = {
     notes: [
         {
+            id: 'note-我想和你好好的',
+            title: '我想和你好好的',
+            icon: '📖',
+            date: '2026-05-13',
+            category: '爱情',
+            tags: ["爱情"],
+            excerpt: '1',
+            cover: '',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-围城1',
             title: '围城1',
             icon: '📖',
