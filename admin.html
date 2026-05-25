@@ -10,6 +10,7 @@
     <!-- Quill.js 富文本编辑器 -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="js/cover-proxy.js"></script>
     
     <style>
         * {
@@ -476,7 +477,7 @@
                         <span style="color: #666; font-size: 13px;">中文书优先从豆瓣读书检索（经代理，与微信读书等书目重叠度高）；并合并 Open Library / Google Books。书名请与版权页一致，有 ISBN 更准。微信读书无公开全书搜索 API，故不直接对接。</span>
                     </div>
                     <div style="margin-top: 12px;">
-                        <img id="noteCoverPreview" alt="封面预览" style="max-height: 160px; max-width: 120px; border-radius: 8px; border: 1px solid #e0e0e0; display: none;">
+                        <img id="noteCoverPreview" alt="封面预览" referrerpolicy="no-referrer" style="max-height: 160px; max-width: 120px; border-radius: 8px; border: 1px solid #e0e0e0; display: none;">
                     </div>
                 </div>
 
@@ -1331,20 +1332,41 @@
             return { source: 'Open Library (ISBN)', cover, category, subjects, excerpt, title };
         }
 
+        /** 封面预览：表单存原始 URL，展示走代理（豆瓣防盗链） */
+        function setCoverPreview(rawUrl) {
+            const prev = document.getElementById('noteCoverPreview');
+            const url = (rawUrl || '').trim();
+            if (!url) {
+                prev.style.display = 'none';
+                prev.removeAttribute('src');
+                return;
+            }
+            const candidates = typeof coverDisplayUrls === 'function'
+                ? coverDisplayUrls(url)
+                : [typeof proxyCoverUrl === 'function' ? proxyCoverUrl(url) : url];
+            let idx = 0;
+            prev.referrerPolicy = 'no-referrer';
+            prev.onload = function () {
+                prev.onerror = null;
+            };
+            prev.onerror = function () {
+                idx += 1;
+                if (idx < candidates.length) {
+                    prev.src = candidates[idx];
+                    return;
+                }
+                prev.style.display = 'none';
+                prev.removeAttribute('src');
+                console.warn('封面图无法加载，请换封面 URL 或稍后重试。');
+            };
+            prev.src = candidates[0];
+            prev.style.display = 'block';
+        }
+
         function applyBookMeta(meta) {
             if (meta.cover) {
                 document.getElementById('noteCoverUrl').value = meta.cover;
-                const prev = document.getElementById('noteCoverPreview');
-                prev.onerror = function () {
-                    prev.style.display = 'none';
-                    prev.removeAttribute('src');
-                    console.warn('封面图无法加载（可能被防盗链），请换封面 URL 或手动指定图片地址。');
-                };
-                prev.onload = function () {
-                    prev.onerror = null;
-                };
-                prev.src = meta.cover;
-                prev.style.display = 'block';
+                setCoverPreview(meta.cover);
             }
             if (meta.category) {
                 document.getElementById('noteCategory').value = meta.category;
@@ -1467,14 +1489,7 @@
                     document.getElementById('noteExcerpt').value = excerpt;
                     document.getElementById('noteCoverUrl').value = cover;
                     document.getElementById('noteIsbn').value = '';
-                    const prev = document.getElementById('noteCoverPreview');
-                    if (cover) {
-                        prev.src = cover;
-                        prev.style.display = 'block';
-                    } else {
-                        prev.style.display = 'none';
-                        prev.removeAttribute('src');
-                    }
+                    setCoverPreview(cover);
                     
                     // 渲染摘录列表
                     renderQuotes();
@@ -2431,6 +2446,10 @@ ${body}`;
                 console.error(error);
             }
         }
+
+        document.getElementById('noteCoverUrl').addEventListener('input', function () {
+            setCoverPreview(this.value);
+        });
 
         // 页面加载时初始化
         window.addEventListener('load', loadConfig);
