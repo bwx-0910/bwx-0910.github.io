@@ -14,7 +14,49 @@ import html as html_module
 import time
 from pathlib import Path
 from datetime import datetime
+import hashlib
+import urllib.request
 import markdown
+
+COVERS_DIR = Path('images/covers')
+DOUBAN_FETCH_HEADERS = {
+    'Referer': 'https://book.douban.com/',
+    'User-Agent': 'Mozilla/5.0 (compatible; blog-build/1.0)',
+}
+
+
+def mirror_douban_cover(url: str) -> str:
+    """豆瓣封面下载到 images/covers/，供 GitHub Pages 同源加载。"""
+    if not url:
+        return ''
+    u = url.strip().replace('http://', 'https://')
+    if 'doubanio.com' not in u:
+        return u
+    if u.startswith('images/covers/'):
+        return u
+
+    COVERS_DIR.mkdir(parents=True, exist_ok=True)
+    sid = re.search(r'/s(\d+)\.(?:jpg|png)', u, re.I)
+    filename = f's{sid.group(1)}.jpg' if sid else f'{hashlib.sha1(u.encode()).hexdigest()[:16]}.jpg'
+    local_path = COVERS_DIR / filename
+    web_path = f'images/covers/{filename}'
+
+    if local_path.is_file() and local_path.stat().st_size > 200:
+        return web_path
+
+    try:
+        req = urllib.request.Request(u, headers=DOUBAN_FETCH_HEADERS)
+        with urllib.request.urlopen(req, timeout=25) as resp:
+            data = resp.read()
+        if len(data) < 200:
+            print(f'  ⚠ 封面过小，跳过镜像: {u}')
+            return u
+        local_path.write_bytes(data)
+        print(f'  🖼 封面已镜像: {web_path}')
+        return web_path
+    except Exception as e:
+        print(f'  ⚠ 封面镜像失败 ({e}): {u}')
+        return u
 
 # 修复 Windows 控制台编码问题
 if sys.platform.startswith('win'):
@@ -193,7 +235,7 @@ def convert_notes_to_js():
                 'category': frontmatter.get('category', '未分类'),
                 'tags': [tag.strip() for tag in frontmatter.get('tags', '').split(',') if tag.strip()],
                 'excerpt': frontmatter.get('excerpt', ''),
-                'cover': frontmatter.get('cover', '').strip(),
+                'cover': mirror_douban_cover(frontmatter.get('cover', '').strip()),
                 'content': markdown_content.strip(),
                 'quotes': frontmatter.get('quotes', []),
                 'filename': md_file.stem

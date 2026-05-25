@@ -1,24 +1,23 @@
 /**
- * 豆瓣 img.doubanio.com 禁止外链，GitHub Pages 等站点需经图片代理加载。
- * 与 build.py 中 proxy_cover_url 逻辑一致；笔记 md 仍存原始豆瓣 URL。
+ * 构建后封面多为 images/covers/ 本地路径。
+ * 未镜像的豆瓣 URL 用 allorigins 预览（weserv 已不可用）。
  */
 function proxyCoverUrl(url) {
     if (!url || typeof url !== 'string') return url || '';
     const u = url.trim().replace(/^http:\/\//i, 'https://');
+    if (/^images\/covers\//i.test(u)) return u;
     if (!/doubanio\.com/i.test(u)) return u;
-    const hostPath = u.replace(/^https?:\/\//i, '');
-    return 'https://images.weserv.nl/?url=' + encodeURIComponent(hostPath);
+    return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u);
 }
 
-/** 豆瓣封面代理列表（主站失败时依次尝试） */
 function coverDisplayUrls(rawUrl) {
     if (!rawUrl) return [];
     const u = rawUrl.trim().replace(/^http:\/\//i, 'https://');
+    if (/^images\/covers\//i.test(u)) return [u];
     if (!/doubanio\.com/i.test(u)) return [u];
-    const hostPath = u.replace(/^https?:\/\//i, '');
-    const enc = encodeURIComponent(hostPath);
+    const enc = encodeURIComponent(u);
     return [
-        'https://images.weserv.nl/?url=' + enc,
-        'https://wsrv.nl/?url=' + enc
+        'https://api.allorigins.win/raw?url=' + enc,
+        'https://corsproxy.io/?' + enc
     ];
 }
