@@ -469,7 +469,7 @@
                     <input type="text" id="noteCoverUrl" placeholder="https://...">
                     <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                         <button type="button" class="btn btn-primary" id="btnSmartBook" onclick="smartFillBookMeta()">智能检索书目</button>
-                        <span style="color: #666; font-size: 13px;">从 Open Library / Google Books 多候选比对书名后择优填入；建议书名与版权页一致，有 ISBN 时更准。</span>
+                        <span style="color: #666; font-size: 13px;">中文书优先从豆瓣读书检索（经代理，与微信读书等书目重叠度高）；并合并 Open Library / Google Books。书名请与版权页一致，有 ISBN 更准。微信读书无公开全书搜索 API，故不直接对接。</span>
                     </div>
                     <div style="margin-top: 12px;">
                         <img id="noteCoverPreview" alt="封面预览" style="max-height: 160px; max-width: 120px; border-radius: 8px; border: 1px solid #e0e0e0; display: none;">
@@ -890,6 +890,143 @@
             prev.removeAttribute('src');
         }
 
+        /** 是否含中日韩字符（用于优先走豆瓣等中文源） */
+        function hasCjkText(s) {
+            return /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/.test(String(s || ''));
+        }
+
+        const BOOK_CORS_PROXY_BUILDERS = [
+            (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+            (u) => 'https://corsproxy.io/?' + encodeURIComponent(u)
+        ];
+
+        /**
+         * 跨域资源拉取：先直连，失败再走公共 CORS 代理（豆瓣等需代理）
+         */
+        async function fetchBookResource(url, opts) {
+            const options = Object.assign({ method: 'GET' }, opts || {});
+            const tryOnce = async (target) => {
+                const ctrl = new AbortController();
+                const timer = setTimeout(() => ctrl.abort(), 22000);
+                try {
+                    const r = await fetch(target, Object.assign({}, options, { signal: ctrl.signal }));
+                    clearTimeout(timer);
+                    return r.ok ? r : null;
+                } catch (e) {
+                    clearTimeout(timer);
+                    return null;
+                }
+            };
+            let r = await tryOnce(url);
+            if (r) return r;
+            for (const build of BOOK_CORS_PROXY_BUILDERS) {
+                r = await tryOnce(build(url));
+                if (r) return r;
+            }
+            return null;
+        }
+
+        function upgradeDoubanCoverUrl(pic) {
+            if (!pic) return '';
+            return String(pic)
+                .replace('/view/subject/s/', '/view/subject/l/')
+                .replace('/view/subject/m/', '/view/subject/l/');
+        }
+
+        function parseDoubanSubjectHtml(html) {
+            const out = { excerpt: '', tags: [] };
+            if (!html) return out;
+            const descM = html.match(/property="og:description"\s+content="([^"]*)"/i);
+            if (descM) {
+                out.excerpt = descM[1]
+                    .replace(/&quot;/g, '"')
+                    .replace(/&amp;/g, '&')
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                if (out.excerpt.length > 320) out.excerpt = out.excerpt.slice(0, 320) + '…';
+            }
+            const kwM = html.match(/name="keywords"\s+content="([^"]*)"/i);
+            if (kwM) {
+                out.tags = kwM[1].split(',').map((t) => t.trim()).filter(Boolean).slice(0, 8);
+            }
+            const imgM = html.match(/property="og:image"\s+content="([^"]*)"/i);
+            if (imgM) out.cover = upgradeDoubanCoverUrl(imgM[1]);
+            const titleM = html.match(/property="og:title"\s+content="([^"]*)"/i);
+            if (titleM) out.title = titleM[1].replace(/\s*\(豆瓣\)\s*$/, '').trim();
+            return out;
+        }
+
+        function metaFromDoubanSuggest(item, detail) {
+            const title = (detail && detail.title) || item.title || '';
+            const cover = (detail && detail.cover) || upgradeDoubanCoverUrl(item.pic || '');
+            const author = item.author_name || '';
+            let subjects = (detail && detail.tags && detail.tags.length) ? detail.tags.slice(0, 8) : [];
+            if (author && !subjects.includes(author)) subjects = [author].concat(subjects).slice(0, 8);
+            const excerpt = (detail && detail.excerpt) || '';
+            const category = subjects.length ? subjects[0] : (author ? '著者: ' + author : '');
+            return { source: '豆瓣读书', cover, category, subjects, excerpt, title };
+        }
+
+        async function fetchDoubanSubjectDetail(id) {
+            if (!id) return null;
+            const url = 'https://book.douban.com/subject/' + encodeURIComponent(id) + '/';
+            const r = await fetchBookResource(url);
+            if (!r) return null;
+            const html = await r.text();
+            return parseDoubanSubjectHtml(html);
+        }
+
+        /** 豆瓣联想搜索 + 详情页补全简介/标签 */
+        async function searchDouban(q) {
+            if (!q) return null;
+            const url = 'https://book.douban.com/j/subject_suggest?q=' + encodeURIComponent(q);
+            const r = await fetchBookResource(url);
+            if (!r) return null;
+            let items;
+            try {
+                items = await r.json();
+            } catch (e) {
+                return null;
+            }
+            const books = (items || []).filter((x) => x && x.type === 'b' && x.id);
+            if (!books.length) return null;
+            let bestItem = null;
+            let bestScore = -1;
+            for (const item of books) {
+                const s = scoreTitleMatch(item.title || '', q);
+                if (s > bestScore) {
+                    bestScore = s;
+                    bestItem = item;
+                }
+            }
+            if (!bestItem) bestItem = books[0];
+            const detail = await fetchDoubanSubjectDetail(bestItem.id);
+            return metaFromDoubanSuggest(bestItem, detail);
+        }
+
+        /** ISBN → 豆瓣 subject 页（简介/封面/标签） */
+        async function lookupDoubanIsbn(isbn) {
+            const clean = isbn.replace(/[-\s]/g, '');
+            if (clean.length < 10) return null;
+            const url = 'https://book.douban.com/isbn/' + encodeURIComponent(clean);
+            const r = await fetchBookResource(url);
+            if (!r) return null;
+            const html = await r.text();
+            const parsed = parseDoubanSubjectHtml(html);
+            if (!parsed.title && !parsed.cover && !parsed.excerpt) return null;
+            const subjects = (parsed.tags || []).slice(0, 8);
+            return {
+                source: '豆瓣读书 (ISBN)',
+                cover: parsed.cover || '',
+                category: subjects.length ? subjects[0] : '',
+                subjects,
+                excerpt: parsed.excerpt || '',
+                title: parsed.title || ''
+            };
+        }
+
         /** 从书名提取检索用关键词 */
         function normalizeBookQuery(title) {
             if (!title) return '';
@@ -981,10 +1118,11 @@
             };
         }
 
-        /** Open Library：取多条结果，按与查询书名的相似度择优（不再用 docs[0]） */
+        /** Open Library：中文书名用 title 参数，避免 q 触发 422 */
         async function searchOpenLibrary(q) {
             if (!q) return null;
-            const url = 'https://openlibrary.org/search.json?q=' + encodeURIComponent(q) + '&limit=25';
+            const param = hasCjkText(q) ? ('title=' + encodeURIComponent(q)) : ('q=' + encodeURIComponent(q));
+            const url = 'https://openlibrary.org/search.json?' + param + '&limit=25';
             const r = await fetch(url);
             if (!r.ok) return null;
             const j = await r.json();
@@ -1178,14 +1316,23 @@
             try {
                 const qTitle = normalizeBookQuery(titleRaw) || titleRaw;
                 const qSearch = qTitle || isbn.replace(/[-\s]/g, '');
+                const preferCn = hasCjkText(qTitle) || hasCjkText(titleRaw);
                 const candidates = [];
                 if (qSearch) {
+                    if (preferCn) {
+                        const d = await searchDouban(qSearch);
+                        if (d) candidates.push(d);
+                    }
                     const g = await searchGoogleBooks(qSearch);
                     if (g) candidates.push(g);
                     const o = await searchOpenLibrary(qSearch);
                     if (o) candidates.push(o);
                 }
                 if (isbn) {
+                    if (preferCn) {
+                        const dIsbn = await lookupDoubanIsbn(isbn);
+                        if (dIsbn) candidates.push(dIsbn);
+                    }
                     const byIsbn = await lookupOpenLibraryIsbn(isbn);
                     if (byIsbn) candidates.push(byIsbn);
                 }
@@ -1195,7 +1342,7 @@
                     meta = candidates[0];
                 }
                 if (!meta) {
-                    alert('未找到可用的书目信息。可尝试：与版权页一致的书名、英文书名，或填写 ISBN。');
+                    alert('未找到可用的书目信息。可尝试：与版权页一致的书名、填写 ISBN，或稍后再试（豆瓣/Google 可能限流）。');
                     return;
                 }
                 applyBookMeta(meta);
