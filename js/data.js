@@ -5,6 +5,19 @@
 const postsData = {
     notes: [
         {
+            id: 'note-解忧杂货店',
+            title: '解忧杂货店',
+            icon: '📖',
+            date: '2026-05-25',
+            category: '解忧杂货店',
+            tags: ["解忧杂货店", "[日] 东野圭吾", "南海出版公司", "2014-5", "简介", "作者"],
+            excerpt: '现代人内心流失的东西，这家杂货店能帮你找回—— 僻静的街道旁有一家杂货店，只要写下烦恼投进卷帘门的投信口，第二天就会在店后的牛奶箱里得到回答。 因男友身患绝症，年轻女孩静子在爱情与梦想间徘徊；克郎为了音乐梦想离家漂泊，却在现实中寸步难行；少年浩介面临家庭巨变，挣扎在亲情与未来的迷茫中…… 他们将困惑写成信投进杂货店，随即奇妙的事情竟不断发生。 生命中的一次偶然交会，将如何演绎出截然不同的人生？ 如今回顾写作过程，我发现自己始终在思考一个问题：站在人生的岔路口，人究竟应该怎么做？我希望读者能在掩卷时喃喃自语：我从未读过这样的小说。——东野圭吾',
+            cover: 'images/covers/s27264181.jpg',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-悉达多',
             title: '悉达多',
             icon: '📖',
@@ -104,19 +117,6 @@ const postsData = {
             tags: ["钱钟书"],
             excerpt: '1',
             cover: '',
-            content: `
-1
-            `
-        },
-        {
-            id: 'note-解忧杂货店',
-            title: '解忧杂货店',
-            icon: '📖',
-            date: '2026-04-20',
-            category: 'Abandoned buildings',
-            tags: ["Abandoned buildings"],
-            excerpt: '1',
-            cover: 'https://books.google.com/books/content?id=ljHeoAEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api',
             content: `
 1
             `
