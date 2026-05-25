@@ -5,6 +5,19 @@
 const postsData = {
     notes: [
         {
+            id: 'note-不要为打翻的牛奶哭泣',
+            title: '不要为打翻的牛奶哭泣',
+            icon: '📖',
+            date: '2026-05-25',
+            category: '不要为打翻的牛奶哭泣',
+            tags: ["不要为打翻的牛奶哭泣", "赵约翰医生", "浙江人民出版社", "2026-1-1", "简介", "作者"],
+            excerpt: '你是否总是抓着过去不放，对受过的委屈和伤害耿耿于怀？ 是否在那些无法改变或者不可控的事情上持续消耗能量？ 是否习惯用今天的成熟去否定昨日那个虽然迷茫却已然尽力的自己？ 是否为打翻的牛奶久久哭泣，始终无...',
+            cover: 'https://img3.doubanio.com/view/subject/l/public/s35382287.jpg',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-我想和你好好的',
             title: '我想和你好好的',
             icon: '📖',
@@ -142,19 +155,6 @@ const postsData = {
             category: 'Conduct of life',
             tags: ["Conduct of life"],
             excerpt: '在复杂的世界里, 做一个简单的人',
-            cover: '',
-            content: `
-1
-            `
-        },
-        {
-            id: 'note-不要为打翻的牛奶哭泣',
-            title: '不要为打翻的牛奶哭泣',
-            icon: '📖',
-            date: '2026-03-16',
-            category: '心理学',
-            tags: ["治愈治愈自己"],
-            excerpt: '1',
             cover: '',
             content: `
 1
