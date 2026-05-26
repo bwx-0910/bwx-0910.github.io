@@ -1469,11 +1469,12 @@
                     const coverLine = frontmatter.match(/^cover:\s*(.+)$/m);
                     const cover = coverLine ? coverLine[1].trim() : '';
                     
-                    // 解析摘录数组
-                    const quotesMatch = frontmatter.match(/quotes:\s*(\[[\s\S]*?\])/);
-                    if (quotesMatch) {
+                    // 解析摘录数组（quotes 通常保存为单行 JSON 数组）
+                    // 旧实现用 /quotes:\s*(\[[\s\S]*?\])/ 会在摘录文本包含 `]`（如 “[插图]”）时提前截断，导致 JSON.parse 失败。
+                    const quotesLine = frontmatter.match(/^quotes:\s*(.+)$/m);
+                    if (quotesLine && quotesLine[1]) {
                         try {
-                            quotes = JSON.parse(quotesMatch[1]);
+                            quotes = JSON.parse(quotesLine[1].trim());
                         } catch (e) {
                             console.error('解析摘录失败:', e);
                             quotes = [];
