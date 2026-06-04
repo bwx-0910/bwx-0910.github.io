@@ -72,12 +72,34 @@ body {
     letter-spacing: 0.02em;
 }
 
+.note-meta .reading-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.note-meta .reading-status--active {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border: 1px solid #93c5fd;
+}
+
+.note-meta .reading-status--done {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+}
+
 .note-meta {
     display: flex;
     justify-content: center;
     gap: 1.5rem;
     margin-bottom: 1rem;
     color: #666;
+    flex-wrap: wrap;
+    align-items: center;
     font-size: 0.95rem;
 }
 

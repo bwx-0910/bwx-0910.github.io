@@ -492,6 +492,15 @@
                 </div>
 
                 <div class="form-group">
+                    <label>阅读状态</label>
+                    <select id="noteStatus">
+                        <option value="">未设置</option>
+                        <option value="正在读">正在读</option>
+                        <option value="已读完">已读完</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label>标签（逗号分隔）</label>
                     <input type="text" id="noteTags" placeholder="标签1, 标签2, 标签3">
                 </div>
@@ -877,6 +886,7 @@
             document.getElementById('noteTitle').value = '';
             document.getElementById('noteIcon').value = '📖';
             document.getElementById('noteCategory').value = '';
+            document.getElementById('noteStatus').value = '';
             document.getElementById('noteTags').value = '';
             document.getElementById('noteExcerpt').value = '';
             
@@ -1466,6 +1476,8 @@
                     const category = frontmatter.match(/category:\s*(.+)/)?.[1] || '';
                     const tags = frontmatter.match(/tags:\s*(.+)/)?.[1] || '';
                     const excerpt = frontmatter.match(/excerpt:\s*(.+)/)?.[1] || '';
+                    const statusLine = frontmatter.match(/^status:\s*(.+)$/m);
+                    const status = statusLine ? statusLine[1].trim() : '';
                     const coverLine = frontmatter.match(/^cover:\s*(.+)$/m);
                     const cover = coverLine ? coverLine[1].trim() : '';
                     
@@ -1486,6 +1498,8 @@
                     document.getElementById('noteTitle').value = title;
                     document.getElementById('noteIcon').value = icon;
                     document.getElementById('noteCategory').value = category;
+                    document.getElementById('noteStatus').value =
+                        (status === '正在读' || status === '已读完') ? status : '';
                     document.getElementById('noteTags').value = tags;
                     document.getElementById('noteExcerpt').value = excerpt;
                     document.getElementById('noteCoverUrl').value = cover;
@@ -1520,6 +1534,7 @@
             const icon = document.getElementById('noteIcon').value;
             const coverUrl = document.getElementById('noteCoverUrl').value.trim();
             const category = document.getElementById('noteCategory').value;
+            const status = document.getElementById('noteStatus').value;
             const tags = document.getElementById('noteTags').value;
             const excerpt = document.getElementById('noteExcerpt').value;
             
@@ -1535,12 +1550,13 @@
             const today = new Date().toISOString().split('T')[0];
             const quotesJson = JSON.stringify(quotes);
             const coverLine = coverUrl ? `cover: ${coverUrl}\n` : '';
+            const statusLine = (status === '正在读' || status === '已读完') ? `status: ${status}\n` : '';
             const fullContent = `---
 title: ${title}
 icon: ${icon}
 ${coverLine}date: ${today}
 category: ${category}
-tags: ${tags}
+${statusLine}tags: ${tags}
 excerpt: ${excerpt}
 quotes: ${quotesJson}
 ---
@@ -1656,6 +1672,7 @@ ${content}`;
             document.getElementById('noteTitle').value = '';
             document.getElementById('noteIcon').value = '📖';
             document.getElementById('noteCategory').value = '';
+            document.getElementById('noteStatus').value = '';
             document.getElementById('noteTags').value = '';
             document.getElementById('noteExcerpt').value = '';
             document.getElementById('noteIsbn').value = '';

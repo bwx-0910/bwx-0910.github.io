@@ -188,6 +188,16 @@ function renderDiaries(containerId, diaries) {
     });
 }
 
+function readingStatusBadge(status) {
+    if (status === '正在读') {
+        return '<span class="reading-status reading-status--active">正在读</span>';
+    }
+    if (status === '已读完') {
+        return '<span class="reading-status reading-status--done">已读完</span>';
+    }
+    return '';
+}
+
 // 渲染笔记
 function renderNotes(containerId, notes) {
     const container = document.getElementById(containerId);
@@ -210,6 +220,7 @@ function renderNotes(containerId, notes) {
             ? `<div class="post-cover-wrap"><img class="post-cover-img" src="${escapeHtmlText(note.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer"></div>`
             : '';
         const iconBlock = note.cover ? '' : `<div class="post-icon">${note.icon}</div>`;
+        const statusBadge = readingStatusBadge(note.status);
 
         return `
         <a href="${noteLink}" class="post-card-link">
@@ -222,6 +233,7 @@ function renderNotes(containerId, notes) {
                     <div class="post-meta">
                         <span>📅 ${escapeHtmlText(note.date)}</span>
                         <span>📂 ${escapeHtmlText(note.category)}</span>
+                        ${statusBadge}
                     </div>
                     </div>
                 </div>

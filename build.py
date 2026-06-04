@@ -227,6 +227,10 @@ def convert_notes_to_js():
             note_id = 'note-' + md_file.stem.lower().replace(' ', '-')
             
             # 构建笔记对象
+            status = frontmatter.get('status', '').strip()
+            if status not in ('正在读', '已读完'):
+                status = ''
+
             note = {
                 'id': note_id,
                 'title': frontmatter.get('title', md_file.stem),
@@ -236,6 +240,7 @@ def convert_notes_to_js():
                 'tags': [tag.strip() for tag in frontmatter.get('tags', '').split(',') if tag.strip()],
                 'excerpt': frontmatter.get('excerpt', ''),
                 'cover': mirror_douban_cover(frontmatter.get('cover', '').strip()),
+                'status': status,
                 'content': markdown_content.strip(),
                 'quotes': frontmatter.get('quotes', []),
                 'filename': md_file.stem
@@ -290,6 +295,7 @@ def generate_data_js(notes, poems, diaries):
         js_code += f"            tags: {json.dumps(note['tags'], ensure_ascii=False)},\n"
         js_code += f"            excerpt: '{escape_js_string(note['excerpt'])}',\n"
         js_code += f"            cover: '{escape_js_string(note.get('cover', ''))}',\n"
+        js_code += f"            status: '{escape_js_string(note.get('status', ''))}',\n"
         js_code += f"            content: `\n{escape_js_string(note['content'])}\n            `\n"
         js_code += '        }'
         
@@ -419,8 +425,17 @@ def generate_note_html(note):
     icon_html = ''
     if not note.get('cover'):
         icon_html = f'<div class="note-icon">{note["icon"]}</div>'
+    status = note.get('status', '').strip()
+    if status == '正在读':
+        status_html = '<span class="reading-status reading-status--active">正在读</span>'
+    elif status == '已读完':
+        status_html = '<span class="reading-status reading-status--done">已读完</span>'
+    else:
+        status_html = ''
+
     html = template.replace('{{COVER_HTML}}', cover_html)
     html = html.replace('{{ICON_HTML}}', icon_html)
+    html = html.replace('{{STATUS_HTML}}', status_html)
     html = html.replace('{{TITLE}}', note['title'])
     html = html.replace('{{DATE}}', note['date'])
     html = html.replace('{{CATEGORY}}', note['category'])
