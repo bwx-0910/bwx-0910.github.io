@@ -173,6 +173,20 @@ const postsData = {
             `
         },
         {
+            id: 'note-围城',
+            title: '围城',
+            icon: '📖',
+            date: '2026-06-04',
+            category: '围城',
+            tags: ["围城", "钱锺书", "人民文学出版社", "1991-2-1", "简介", "作者"],
+            excerpt: '《围城》是一幅栩栩如生的世井百态图，人生的酸甜苦辣千般滋味均在其中得到了淋漓尽致的体现。钱钟书先生将自己的语言天才并入极其渊博的知识，再添加上一些讽刺主义的幽默调料，以一书而定江山。《围城》显示给我们一个真正的聪明人是怎样看人生，又怎样用所有作家都必得使用的文字来表述自己的“观”和“感”的。',
+            cover: 'images/covers/s11276847.jpg',
+            status: '',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-不要为打翻的牛奶哭泣',
             title: '不要为打翻的牛奶哭泣',
             icon: '📖',
@@ -221,20 +235,6 @@ const postsData = {
             date: '2026-05-12',
             category: '',
             tags: [],
-            excerpt: '1',
-            cover: '',
-            status: '',
-            content: `
-1
-            `
-        },
-        {
-            id: 'note-围城',
-            title: '围城',
-            icon: '📖',
-            date: '2026-05-11',
-            category: '文学',
-            tags: ["钱钟书"],
             excerpt: '1',
             cover: '',
             status: '',
