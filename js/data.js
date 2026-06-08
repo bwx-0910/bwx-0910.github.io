@@ -5,6 +5,20 @@
 const postsData = {
     notes: [
         {
+            id: 'note-亲密关系',
+            title: '亲密关系',
+            icon: '📖',
+            date: '2026-06-08',
+            category: '心理学',
+            tags: ["心理学"],
+            excerpt: '1',
+            cover: 'https://books.google.com/books/content?id=6fdi0D2fxC8C&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api',
+            status: '正在读',
+            content: `
+1
+            `
+        },
+        {
             id: 'note-小岛经济学',
             title: '小岛经济学',
             icon: '📖',
@@ -128,20 +142,6 @@ const postsData = {
             status: '',
             content: `
 -
-            `
-        },
-        {
-            id: 'note-亲密关系',
-            title: '亲密关系',
-            icon: '📖',
-            date: '2026-06-04',
-            category: '心理学',
-            tags: ["心理学"],
-            excerpt: '1',
-            cover: 'https://books.google.com/books/content?id=6fdi0D2fxC8C&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api',
-            status: '正在读',
-            content: `
-1
             `
         },
         {
