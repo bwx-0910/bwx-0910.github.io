@@ -911,18 +911,35 @@
         }
 
         const BOOK_CORS_PROXIES = [
-            { build: (u) => 'https://proxy.cors.sh/' + u },
-            { build: (u) => 'https://api.allorigins.win/get?url=' + encodeURIComponent(u), unwrap: true }
+            {
+                build: (u) => 'https://api.allorigins.win/get?url=' + encodeURIComponent(u),
+                unwrap: true
+            },
+            {
+                build: (u) => 'https://corsproxy.io/?url=' + encodeURIComponent(u)
+            }
         ];
 
+        /** 跨域场景下跳过注定失败的直连（GitHub Pages → weread.qq.com） */
+        function shouldSkipDirectCrossOriginFetch(url) {
+            try {
+                const target = new URL(url, location.href);
+                if (target.origin === location.origin) return false;
+                if (/^localhost$|^127\.0\.0\.1$/i.test(location.hostname)) return false;
+                return true;
+            } catch (e) {
+                return true;
+            }
+        }
+
         /**
-         * 跨域 JSON 拉取：先直连，失败再走 CORS 代理（微信读书等不允许浏览器跨域直连）
+         * 跨域 JSON 拉取：GitHub Pages 无法直连 weread，走 CORS 代理
          */
         async function fetchBookJson(url, opts) {
             const options = Object.assign({ method: 'GET' }, opts || {});
             const tryOnce = async (target, unwrapAllOrigins) => {
                 const ctrl = new AbortController();
-                const timer = setTimeout(() => ctrl.abort(), 25000);
+                const timer = setTimeout(() => ctrl.abort(), 28000);
                 try {
                     const r = await fetch(target, Object.assign({}, options, { signal: ctrl.signal }));
                     clearTimeout(timer);
@@ -941,13 +958,32 @@
                     return null;
                 }
             };
-            let data = await tryOnce(url, false);
-            if (data) return data;
-            for (const proxy of BOOK_CORS_PROXIES) {
-                data = await tryOnce(proxy.build(url), !!proxy.unwrap);
-                if (data) return data;
+            if (!shouldSkipDirectCrossOriginFetch(url)) {
+                const direct = await tryOnce(url, false);
+                if (direct) return direct;
+            }
+            const proxyAttempts = BOOK_CORS_PROXIES.map(async (proxy) => {
+                let data = await tryOnce(proxy.build(url), !!proxy.unwrap);
+                if (!data && proxy.unwrap) {
+                    data = await tryOnce(proxy.build(url), true);
+                }
+                return data;
+            });
+            const results = await Promise.allSettled(proxyAttempts);
+            for (const result of results) {
+                if (result.status === 'fulfilled' && result.value) return result.value;
             }
             return null;
+        }
+
+        /** 单个检索源失败时不中断整体流程（如 Google 在国内不可达会 Failed to fetch） */
+        async function safeBookSearch(label, fn) {
+            try {
+                return await fn();
+            } catch (e) {
+                console.warn('[智能检索] ' + label + ' 失败:', e);
+                return null;
+            }
         }
 
         function upgradeWeReadCoverUrl(cover) {
@@ -1100,25 +1136,30 @@
         /** Open Library：中文书名用 title 参数，避免 q 触发 422 */
         async function searchOpenLibrary(q) {
             if (!q) return null;
-            const param = hasCjkText(q) ? ('title=' + encodeURIComponent(q)) : ('q=' + encodeURIComponent(q));
-            const url = 'https://openlibrary.org/search.json?' + param + '&limit=25';
-            const r = await fetch(url);
-            if (!r.ok) return null;
-            const j = await r.json();
-            const docs = j.docs || [];
-            if (!docs.length) return null;
-            let best = null;
-            let bestScore = -1;
-            for (const d of docs) {
-                const meta = metaFromOpenLibraryDoc(d);
-                let s = scoreTitleMatch(meta.title, q);
-                if (meta.cover) s += 2;
-                if (s > bestScore) {
-                    bestScore = s;
-                    best = meta;
+            try {
+                const param = hasCjkText(q) ? ('title=' + encodeURIComponent(q)) : ('q=' + encodeURIComponent(q));
+                const url = 'https://openlibrary.org/search.json?' + param + '&limit=25';
+                const r = await fetch(url);
+                if (!r.ok) return null;
+                const j = await r.json();
+                const docs = j.docs || [];
+                if (!docs.length) return null;
+                let best = null;
+                let bestScore = -1;
+                for (const d of docs) {
+                    const meta = metaFromOpenLibraryDoc(d);
+                    let s = scoreTitleMatch(meta.title, q);
+                    if (meta.cover) s += 2;
+                    if (s > bestScore) {
+                        bestScore = s;
+                        best = meta;
+                    }
                 }
+                return best;
+            } catch (e) {
+                console.warn('[智能检索] Open Library 失败:', e);
+                return null;
             }
-            return best;
         }
 
         /**
@@ -1127,34 +1168,44 @@
          */
         async function searchGoogleBooks(q) {
             if (!q) return null;
-            const urls = [
-                'https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent('intitle:' + q) + '&maxResults=12',
-                'https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(q) + '&maxResults=12'
-            ];
-            const byId = new Map();
-            for (const url of urls) {
-                const r = await fetch(url);
-                if (!r.ok) continue;
-                const j = await r.json();
-                (j.items || []).forEach((item, idx) => {
-                    const key = item.id || ('vol-' + idx + '-' + (item.volumeInfo && item.volumeInfo.title || ''));
-                    if (!byId.has(key)) byId.set(key, item);
-                });
-            }
-            const items = Array.from(byId.values());
-            if (!items.length) return null;
-            let best = null;
-            let bestScore = -1;
-            for (const item of items) {
-                const meta = metaFromGoogleVolumeItem(item);
-                let s = scoreTitleMatch(meta.title, q);
-                if (meta.cover) s += 2;
-                if (s > bestScore) {
-                    bestScore = s;
-                    best = meta;
+            try {
+                const urls = [
+                    'https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent('intitle:' + q) + '&maxResults=12',
+                    'https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(q) + '&maxResults=12'
+                ];
+                const byId = new Map();
+                for (const url of urls) {
+                    let r;
+                    try {
+                        r = await fetch(url);
+                    } catch (e) {
+                        continue;
+                    }
+                    if (!r.ok) continue;
+                    const j = await r.json();
+                    (j.items || []).forEach((item, idx) => {
+                        const key = item.id || ('vol-' + idx + '-' + (item.volumeInfo && item.volumeInfo.title || ''));
+                        if (!byId.has(key)) byId.set(key, item);
+                    });
                 }
+                const items = Array.from(byId.values());
+                if (!items.length) return null;
+                let best = null;
+                let bestScore = -1;
+                for (const item of items) {
+                    const meta = metaFromGoogleVolumeItem(item);
+                    let s = scoreTitleMatch(meta.title, q);
+                    if (meta.cover) s += 2;
+                    if (s > bestScore) {
+                        bestScore = s;
+                        best = meta;
+                    }
+                }
+                return best;
+            } catch (e) {
+                console.warn('[智能检索] Google Books 失败:', e);
+                return null;
             }
-            return best;
         }
 
         /** 封面/摘要等可填项数量，用于在书名相近时优先信息更全的条目 */
@@ -1228,31 +1279,36 @@
         async function lookupOpenLibraryIsbn(isbn) {
             const clean = isbn.replace(/[-\s]/g, '');
             if (clean.length < 10) return null;
-            const url = 'https://openlibrary.org/isbn/' + encodeURIComponent(clean) + '.json';
-            const r = await fetch(url);
-            if (!r.ok) return null;
-            const book = await r.json();
-            let cover = '';
-            if (book.covers && book.covers[0]) {
-                cover = 'https://covers.openlibrary.org/b/id/' + book.covers[0] + '-M.jpg';
+            try {
+                const url = 'https://openlibrary.org/isbn/' + encodeURIComponent(clean) + '.json';
+                const r = await fetch(url);
+                if (!r.ok) return null;
+                const book = await r.json();
+                let cover = '';
+                if (book.covers && book.covers[0]) {
+                    cover = 'https://covers.openlibrary.org/b/id/' + book.covers[0] + '-M.jpg';
+                }
+                const title = book.title || '';
+                let subjects = [];
+                let excerpt = '';
+                const wkey = book.works && book.works[0] && book.works[0].key;
+                if (wkey) {
+                    try {
+                        const wr = await fetch('https://openlibrary.org' + wkey + '.json');
+                        if (wr.ok) {
+                            const work = await wr.json();
+                            subjects = (work.subjects || []).slice(0, 8);
+                            excerpt = (work.first_sentence && work.first_sentence[0]) || work.description || '';
+                            if (typeof excerpt === 'object' && excerpt.value) excerpt = excerpt.value;
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+                const category = subjects.length ? subjects[0] : '';
+                return { source: 'Open Library (ISBN)', cover, category, subjects, excerpt, title };
+            } catch (e) {
+                console.warn('[智能检索] Open Library ISBN 失败:', e);
+                return null;
             }
-            const title = book.title || '';
-            let subjects = [];
-            let excerpt = '';
-            const wkey = book.works && book.works[0] && book.works[0].key;
-            if (wkey) {
-                try {
-                    const wr = await fetch('https://openlibrary.org' + wkey + '.json');
-                    if (wr.ok) {
-                        const work = await wr.json();
-                        subjects = (work.subjects || []).slice(0, 8);
-                        excerpt = (work.first_sentence && work.first_sentence[0]) || work.description || '';
-                        if (typeof excerpt === 'object' && excerpt.value) excerpt = excerpt.value;
-                    }
-                } catch (e) { /* ignore */ }
-            }
-            const category = subjects.length ? subjects[0] : '';
-            return { source: 'Open Library (ISBN)', cover, category, subjects, excerpt, title };
         }
 
         /** 封面预览：表单存原始 URL，展示走代理（部分 CDN 防盗链） */
@@ -1320,20 +1376,22 @@
                 const candidates = [];
                 if (qSearch) {
                     if (preferCn) {
-                        const w = await searchWeRead(qSearch);
+                        const w = await safeBookSearch('微信读书', () => searchWeRead(qSearch));
                         if (w) candidates.push(w);
                     }
-                    const g = await searchGoogleBooks(qSearch);
-                    if (g) candidates.push(g);
-                    const o = await searchOpenLibrary(qSearch);
+                    if (!preferCn) {
+                        const g = await safeBookSearch('Google Books', () => searchGoogleBooks(qSearch));
+                        if (g) candidates.push(g);
+                    }
+                    const o = await safeBookSearch('Open Library', () => searchOpenLibrary(qSearch));
                     if (o) candidates.push(o);
                 }
                 if (isbn) {
                     if (preferCn) {
-                        const wIsbn = await lookupWeReadIsbn(isbn);
+                        const wIsbn = await safeBookSearch('微信读书 ISBN', () => lookupWeReadIsbn(isbn));
                         if (wIsbn) candidates.push(wIsbn);
                     }
-                    const byIsbn = await lookupOpenLibraryIsbn(isbn);
+                    const byIsbn = await safeBookSearch('Open Library ISBN', () => lookupOpenLibraryIsbn(isbn));
                     if (byIsbn) candidates.push(byIsbn);
                 }
 
