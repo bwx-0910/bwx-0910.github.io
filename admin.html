@@ -910,33 +910,42 @@
             return /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/.test(String(s || ''));
         }
 
-        const BOOK_CORS_PROXY_BUILDERS = [
-            (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
-            (u) => 'https://corsproxy.io/?' + encodeURIComponent(u)
+        const BOOK_CORS_PROXIES = [
+            { build: (u) => 'https://proxy.cors.sh/' + u },
+            { build: (u) => 'https://api.allorigins.win/get?url=' + encodeURIComponent(u), unwrap: true }
         ];
 
         /**
-         * 跨域资源拉取：先直连，失败再走公共 CORS 代理（微信读书等需代理）
+         * 跨域 JSON 拉取：先直连，失败再走 CORS 代理（微信读书等不允许浏览器跨域直连）
          */
-        async function fetchBookResource(url, opts) {
+        async function fetchBookJson(url, opts) {
             const options = Object.assign({ method: 'GET' }, opts || {});
-            const tryOnce = async (target) => {
+            const tryOnce = async (target, unwrapAllOrigins) => {
                 const ctrl = new AbortController();
-                const timer = setTimeout(() => ctrl.abort(), 22000);
+                const timer = setTimeout(() => ctrl.abort(), 25000);
                 try {
                     const r = await fetch(target, Object.assign({}, options, { signal: ctrl.signal }));
                     clearTimeout(timer);
-                    return r.ok ? r : null;
+                    if (!r.ok) return null;
+                    const payload = await r.json();
+                    if (unwrapAllOrigins && payload && typeof payload.contents === 'string') {
+                        try {
+                            return JSON.parse(payload.contents);
+                        } catch (e) {
+                            return null;
+                        }
+                    }
+                    return payload;
                 } catch (e) {
                     clearTimeout(timer);
                     return null;
                 }
             };
-            let r = await tryOnce(url);
-            if (r) return r;
-            for (const build of BOOK_CORS_PROXY_BUILDERS) {
-                r = await tryOnce(build(url));
-                if (r) return r;
+            let data = await tryOnce(url, false);
+            if (data) return data;
+            for (const proxy of BOOK_CORS_PROXIES) {
+                data = await tryOnce(proxy.build(url), !!proxy.unwrap);
+                if (data) return data;
             }
             return null;
         }
@@ -967,15 +976,9 @@
         async function searchWeRead(q) {
             if (!q) return null;
             const url = 'https://weread.qq.com/web/search/global?keyword=' + encodeURIComponent(q) + '&maxIdx=0&fragmentSize=120';
-            const r = await fetchBookResource(url);
-            if (!r) return null;
-            let data;
-            try {
-                data = await r.json();
-            } catch (e) {
-                return null;
-            }
-            const books = (data && data.books) || [];
+            const data = await fetchBookJson(url);
+            if (!data) return null;
+            const books = data.books || [];
             if (!books.length) return null;
             let bestItem = null;
             let bestScore = -1;
