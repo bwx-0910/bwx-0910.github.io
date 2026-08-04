@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <title>管理 · 小瑄的生活记录</title>
     <!-- 网站图标 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✏️</text></svg>">
@@ -330,6 +330,14 @@
                 </small>
             </div>
 
+            <div class="form-group">
+                <label>微信读书代理 URL（可选，推荐）</label>
+                <input type="text" id="wereadProxy" placeholder="https://你的-worker.workers.dev">
+                <small style="color: #666; margin-top: 5px; display: block;">
+                    GitHub Pages 无法直连微信读书。部署仓库内 <code>cloudflare/weread-proxy</code> 的 Worker 后填入地址，检索最稳定。
+                </small>
+            </div>
+
             <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
             
             <div style="margin-top: 20px;">
@@ -474,7 +482,7 @@
                     <input type="text" id="noteCoverUrl" placeholder="https://...">
                     <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                         <button type="button" class="btn btn-primary" id="btnSmartBook" onclick="smartFillBookMeta()">智能检索书目</button>
-                        <span style="color: #666; font-size: 13px;">中文书优先从微信读书书城检索（公开 web 接口，经代理）；并合并 Open Library / Google Books。书名请与版权页一致，有 ISBN 更准。</span>
+                        <span style="color: #666; font-size: 13px;">中文书从微信读书检索（经 Worker 或 CORS 代理，浏览器无法直连）；并合并 Open Library。建议在 GitHub 配置中填写 Cloudflare Worker 地址。</span>
                     </div>
                     <div style="margin-top: 12px;">
                         <img id="noteCoverPreview" alt="封面预览" referrerpolicy="no-referrer" style="max-height: 160px; max-width: 120px; border-radius: 8px; border: 1px solid #e0e0e0; display: none;">
@@ -757,6 +765,7 @@
                 document.getElementById('githubUsername').value = data.username || 'bwx-0910';
                 document.getElementById('repoName').value = data.repo || 'bwx-0910.github.io';
                 document.getElementById('githubToken').value = data.token || '';
+                document.getElementById('wereadProxy').value = data.wereadProxy || '';
                 
                 if (data.token) {
                     document.getElementById('setupSection').style.display = 'none';
@@ -801,6 +810,7 @@
             const username = document.getElementById('githubUsername').value;
             const repo = document.getElementById('repoName').value;
             const token = document.getElementById('githubToken').value;
+            const wereadProxy = document.getElementById('wereadProxy').value.trim();
 
             if (!username || !repo || !token) {
                 alert('请填写所有字段');
@@ -810,7 +820,8 @@
             localStorage.setItem('githubConfig', JSON.stringify({
                 username: username,
                 repo: repo,
-                token: token
+                token: token,
+                wereadProxy: wereadProxy
             }));
 
             alert('配置已保存！');
@@ -910,42 +921,51 @@
             return /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/.test(String(s || ''));
         }
 
-        const BOOK_CORS_PROXIES = [
-            {
-                build: (u) => 'https://api.allorigins.win/get?url=' + encodeURIComponent(u),
-                unwrap: true
-            },
-            {
-                build: (u) => 'https://corsproxy.io/?url=' + encodeURIComponent(u)
-            }
-        ];
+        const WEREAD_SEARCH_PATH = '/web/search/global';
 
-        /** 跨域场景下跳过注定失败的直连（GitHub Pages → weread.qq.com） */
-        function shouldSkipDirectCrossOriginFetch(url) {
+        function buildWeReadSearchUrl(q) {
+            return 'https://weread.qq.com' + WEREAD_SEARCH_PATH
+                + '?keyword=' + encodeURIComponent(q)
+                + '&maxIdx=0&fragmentSize=120';
+        }
+
+        function getWeReadProxyWorkerUrl() {
             try {
-                const target = new URL(url, location.href);
-                if (target.origin === location.origin) return false;
-                if (/^localhost$|^127\.0\.0\.1$/i.test(location.hostname)) return false;
-                return true;
+                const cfg = JSON.parse(localStorage.getItem('githubConfig') || '{}');
+                return String(cfg.wereadProxy || '').trim().replace(/\/$/, '');
             } catch (e) {
-                return true;
+                return '';
             }
         }
 
         /**
-         * 跨域 JSON 拉取：GitHub Pages 无法直连 weread，走 CORS 代理
+         * 微信读书检索：禁止直连 weread.qq.com（必被 CORS 拦截），只走 Worker 或公共代理
          */
-        async function fetchBookJson(url, opts) {
-            const options = Object.assign({ method: 'GET' }, opts || {});
-            const tryOnce = async (target, unwrapAllOrigins) => {
+        async function fetchWeReadSearchJson(q) {
+            const worker = getWeReadProxyWorkerUrl();
+            if (worker) {
+                const workerUrl = worker + '?keyword=' + encodeURIComponent(q);
+                try {
+                    const r = await fetch(workerUrl);
+                    if (r.ok) {
+                        const data = await r.json();
+                        if (data && Array.isArray(data.books)) return data;
+                    }
+                } catch (e) {
+                    console.warn('[智能检索] Worker 代理失败:', e);
+                }
+            }
+
+            const target = buildWeReadSearchUrl(q);
+            const tryProxy = async (proxyUrl, unwrap) => {
                 const ctrl = new AbortController();
                 const timer = setTimeout(() => ctrl.abort(), 28000);
                 try {
-                    const r = await fetch(target, Object.assign({}, options, { signal: ctrl.signal }));
+                    const r = await fetch(proxyUrl, { signal: ctrl.signal });
                     clearTimeout(timer);
                     if (!r.ok) return null;
                     const payload = await r.json();
-                    if (unwrapAllOrigins && payload && typeof payload.contents === 'string') {
+                    if (unwrap && payload && typeof payload.contents === 'string') {
                         try {
                             return JSON.parse(payload.contents);
                         } catch (e) {
@@ -958,20 +978,16 @@
                     return null;
                 }
             };
-            if (!shouldSkipDirectCrossOriginFetch(url)) {
-                const direct = await tryOnce(url, false);
-                if (direct) return direct;
-            }
-            const proxyAttempts = BOOK_CORS_PROXIES.map(async (proxy) => {
-                let data = await tryOnce(proxy.build(url), !!proxy.unwrap);
-                if (!data && proxy.unwrap) {
-                    data = await tryOnce(proxy.build(url), true);
-                }
-                return data;
-            });
-            const results = await Promise.allSettled(proxyAttempts);
+
+            const proxyJobs = [
+                tryProxy('https://api.allorigins.win/get?url=' + encodeURIComponent(target), true),
+                tryProxy('https://corsproxy.io/?url=' + encodeURIComponent(target), false)
+            ];
+            const results = await Promise.allSettled(proxyJobs);
             for (const result of results) {
-                if (result.status === 'fulfilled' && result.value) return result.value;
+                if (result.status === 'fulfilled' && result.value && Array.isArray(result.value.books)) {
+                    return result.value;
+                }
             }
             return null;
         }
@@ -1008,11 +1024,10 @@
             return { source: '微信读书', cover, category, subjects: subjects.slice(0, 8), excerpt, title };
         }
 
-        /** 微信读书书城搜索（公开 web 接口，无需登录） */
+        /** 微信读书书城搜索（公开 web 接口，经 Worker/代理，禁止浏览器直连） */
         async function searchWeRead(q) {
             if (!q) return null;
-            const url = 'https://weread.qq.com/web/search/global?keyword=' + encodeURIComponent(q) + '&maxIdx=0&fragmentSize=120';
-            const data = await fetchBookJson(url);
+            const data = await fetchWeReadSearchJson(q);
             if (!data) return null;
             const books = data.books || [];
             if (!books.length) return null;
