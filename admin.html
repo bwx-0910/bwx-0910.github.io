@@ -474,7 +474,7 @@
                     <input type="text" id="noteCoverUrl" placeholder="https://...">
                     <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                         <button type="button" class="btn btn-primary" id="btnSmartBook" onclick="smartFillBookMeta()">智能检索书目</button>
-                        <span style="color: #666; font-size: 13px;">中文书优先从豆瓣读书检索（经代理，与微信读书等书目重叠度高）；并合并 Open Library / Google Books。书名请与版权页一致，有 ISBN 更准。微信读书无公开全书搜索 API，故不直接对接。</span>
+                        <span style="color: #666; font-size: 13px;">中文书优先从微信读书书城检索（公开 web 接口，经代理）；并合并 Open Library / Google Books。书名请与版权页一致，有 ISBN 更准。</span>
                     </div>
                     <div style="margin-top: 12px;">
                         <img id="noteCoverPreview" alt="封面预览" referrerpolicy="no-referrer" style="max-height: 160px; max-width: 120px; border-radius: 8px; border: 1px solid #e0e0e0; display: none;">
@@ -507,7 +507,7 @@
 
                 <div class="form-group">
                     <label>摘要</label>
-                    <textarea id="noteExcerpt" rows="6" placeholder="书籍简介；智能检索会尽量填入豆瓣「内容简介」全文，可自行删减"></textarea>
+                    <textarea id="noteExcerpt" rows="6" placeholder="书籍简介；智能检索会尽量填入微信读书书籍简介，可自行删减"></textarea>
                 </div>
 
                 <!-- 书籍摘录区域 -->
@@ -905,7 +905,7 @@
             prev.removeAttribute('src');
         }
 
-        /** 是否含中日韩字符（用于优先走豆瓣等中文源） */
+        /** 是否含中日韩字符（用于优先走微信读书等中文源） */
         function hasCjkText(s) {
             return /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/.test(String(s || ''));
         }
@@ -916,7 +916,7 @@
         ];
 
         /**
-         * 跨域资源拉取：先直连，失败再走公共 CORS 代理（豆瓣等需代理）
+         * 跨域资源拉取：先直连，失败再走公共 CORS 代理（微信读书等需代理）
          */
         async function fetchBookResource(url, opts) {
             const options = Object.assign({ method: 'GET' }, opts || {});
@@ -941,156 +941,66 @@
             return null;
         }
 
-        function upgradeDoubanCoverUrl(pic) {
-            if (!pic) return '';
-            return String(pic)
-                .replace('/view/subject/s/', '/view/subject/l/')
-                .replace('/view/subject/m/', '/view/subject/l/');
+        function upgradeWeReadCoverUrl(cover) {
+            if (!cover) return '';
+            return String(cover).replace(/^http:/, 'https:');
         }
 
-        function decodeHtmlEntities(text) {
-            if (!text) return '';
-            const el = document.createElement('textarea');
-            el.innerHTML = text;
-            return el.value;
+        function metaFromWeReadItem(item) {
+            const info = (item && item.bookInfo) || {};
+            const title = info.title || '';
+            const author = info.author || '';
+            const cover = upgradeWeReadCoverUrl(info.cover || '');
+            let excerpt = (info.intro || '').replace(/\s+/g, ' ').trim();
+            if (excerpt.length > 500) excerpt = excerpt.slice(0, 500) + '…';
+            const subjects = [];
+            if (info.category) subjects.push(info.category);
+            if (author && !subjects.includes(author)) subjects.push(author);
+            if (info.publisher && !subjects.includes(info.publisher)) subjects.push(info.publisher);
+            const pushName = info.lPushName || '';
+            if (pushName && !subjects.includes(pushName)) subjects.push(pushName);
+            const category = info.category || (info.publisher ? info.publisher : (author ? '著者: ' + author : ''));
+            return { source: '微信读书', cover, category, subjects: subjects.slice(0, 8), excerpt, title };
         }
 
-        function htmlFragmentToPlainText(fragment) {
-            if (!fragment) return '';
-            const box = document.createElement('div');
-            box.innerHTML = fragment;
-            box.querySelectorAll('script, style, a.j.a_show_full').forEach((n) => n.remove());
-            return (box.textContent || '')
-                .replace(/\s+/g, ' ')
-                .replace(/\(展开全部\)/g, '')
-                .replace(/\(展开\)/g, '')
-                .trim();
-        }
-
-        /** 从详情页「内容简介」取全文（不用 og:description，后者常被豆瓣截断） */
-        function extractDoubanIntroFromHtml(html) {
-            if (!html) return '';
-            try {
-                const doc = new DOMParser().parseFromString(html, 'text/html');
-                const report = doc.getElementById('link-report');
-                if (report) {
-                    const hidden = report.querySelector('span.all.hidden');
-                    if (hidden) {
-                        const full = htmlFragmentToPlainText(hidden.innerHTML);
-                        if (full.length > 60) return full;
-                    }
-                    const intro = report.querySelector('#intro, .intro');
-                    if (intro) {
-                        const part = htmlFragmentToPlainText(intro.innerHTML);
-                        if (part.length > 60) return part;
-                    }
-                    const all = htmlFragmentToPlainText(report.innerHTML);
-                    if (all.length > 60) return all;
-                }
-            } catch (e) { /* DOMParser 失败时用正则兜底 */ }
-            const hiddenM = html.match(/<span[^>]*class="all\s+hidden"[^>]*>([\s\S]*?)<\/span>/i);
-            if (hiddenM) {
-                const full = htmlFragmentToPlainText(hiddenM[1]);
-                if (full.length > 60) return full;
-            }
-            const introM = html.match(/<div[^>]*id="intro"[^>]*>([\s\S]*?)<\/div>/i);
-            if (introM) {
-                const part = htmlFragmentToPlainText(introM[1]);
-                if (part.length > 60) return part;
-            }
-            return '';
-        }
-
-        function parseDoubanSubjectHtml(html) {
-            const out = { excerpt: '', tags: [] };
-            if (!html) return out;
-            const intro = extractDoubanIntroFromHtml(html);
-            if (intro) {
-                out.excerpt = intro;
-            } else {
-                const descM = html.match(/property="og:description"\s+content="([^"]*)"/i);
-                if (descM) {
-                    out.excerpt = decodeHtmlEntities(descM[1]).replace(/\s+/g, ' ').trim();
-                }
-            }
-            const kwM = html.match(/name="keywords"\s+content="([^"]*)"/i);
-            if (kwM) {
-                out.tags = kwM[1].split(',').map((t) => t.trim()).filter(Boolean).slice(0, 8);
-            }
-            const imgM = html.match(/property="og:image"\s+content="([^"]*)"/i);
-            if (imgM) out.cover = upgradeDoubanCoverUrl(imgM[1]);
-            const titleM = html.match(/property="og:title"\s+content="([^"]*)"/i);
-            if (titleM) out.title = titleM[1].replace(/\s*\(豆瓣\)\s*$/, '').trim();
-            return out;
-        }
-
-        function metaFromDoubanSuggest(item, detail) {
-            const title = (detail && detail.title) || item.title || '';
-            const cover = (detail && detail.cover) || upgradeDoubanCoverUrl(item.pic || '');
-            const author = item.author_name || '';
-            let subjects = (detail && detail.tags && detail.tags.length) ? detail.tags.slice(0, 8) : [];
-            if (author && !subjects.includes(author)) subjects = [author].concat(subjects).slice(0, 8);
-            const excerpt = (detail && detail.excerpt) || '';
-            const category = subjects.length ? subjects[0] : (author ? '著者: ' + author : '');
-            return { source: '豆瓣读书', cover, category, subjects, excerpt, title };
-        }
-
-        async function fetchDoubanSubjectDetail(id) {
-            if (!id) return null;
-            const url = 'https://book.douban.com/subject/' + encodeURIComponent(id) + '/';
-            const r = await fetchBookResource(url);
-            if (!r) return null;
-            const html = await r.text();
-            return parseDoubanSubjectHtml(html);
-        }
-
-        /** 豆瓣联想搜索 + 详情页补全简介/标签 */
-        async function searchDouban(q) {
+        /** 微信读书书城搜索（公开 web 接口，无需登录） */
+        async function searchWeRead(q) {
             if (!q) return null;
-            const url = 'https://book.douban.com/j/subject_suggest?q=' + encodeURIComponent(q);
+            const url = 'https://weread.qq.com/web/search/global?keyword=' + encodeURIComponent(q) + '&maxIdx=0&fragmentSize=120';
             const r = await fetchBookResource(url);
             if (!r) return null;
-            let items;
+            let data;
             try {
-                items = await r.json();
+                data = await r.json();
             } catch (e) {
                 return null;
             }
-            const books = (items || []).filter((x) => x && x.type === 'b' && x.id);
+            const books = (data && data.books) || [];
             if (!books.length) return null;
             let bestItem = null;
             let bestScore = -1;
             for (const item of books) {
-                const s = scoreTitleMatch(item.title || '', q);
+                const t = (item.bookInfo && item.bookInfo.title) || '';
+                let s = scoreTitleMatch(t, q);
+                const info = item.bookInfo || {};
+                if (info.cover) s += 2;
+                if (info.intro) s += 1;
                 if (s > bestScore) {
                     bestScore = s;
                     bestItem = item;
                 }
             }
             if (!bestItem) bestItem = books[0];
-            const detail = await fetchDoubanSubjectDetail(bestItem.id);
-            return metaFromDoubanSuggest(bestItem, detail);
+            return metaFromWeReadItem(bestItem);
         }
 
-        /** ISBN → 豆瓣 subject 页（简介/封面/标签） */
-        async function lookupDoubanIsbn(isbn) {
+        /** ISBN → 微信读书（以 ISBN 为关键词搜索，命中率因书而异） */
+        async function lookupWeReadIsbn(isbn) {
             const clean = isbn.replace(/[-\s]/g, '');
             if (clean.length < 10) return null;
-            const url = 'https://book.douban.com/isbn/' + encodeURIComponent(clean);
-            const r = await fetchBookResource(url);
-            if (!r) return null;
-            const html = await r.text();
-            const parsed = parseDoubanSubjectHtml(html);
-            if (!parsed.title && !parsed.cover && !parsed.excerpt) return null;
-            const subjects = (parsed.tags || []).slice(0, 8);
-            return {
-                source: '豆瓣读书 (ISBN)',
-                cover: parsed.cover || '',
-                category: subjects.length ? subjects[0] : '',
-                subjects,
-                excerpt: parsed.excerpt || '',
-                title: parsed.title || ''
-            };
+            const meta = await searchWeRead(clean);
+            if (!meta) return null;
+            return Object.assign({}, meta, { source: '微信读书 (ISBN)' });
         }
 
         /** 从书名提取检索用关键词 */
@@ -1342,7 +1252,7 @@
             return { source: 'Open Library (ISBN)', cover, category, subjects, excerpt, title };
         }
 
-        /** 封面预览：表单存原始 URL，展示走代理（豆瓣防盗链） */
+        /** 封面预览：表单存原始 URL，展示走代理（部分 CDN 防盗链） */
         function setCoverPreview(rawUrl) {
             const prev = document.getElementById('noteCoverPreview');
             const url = (rawUrl || '').trim();
@@ -1407,8 +1317,8 @@
                 const candidates = [];
                 if (qSearch) {
                     if (preferCn) {
-                        const d = await searchDouban(qSearch);
-                        if (d) candidates.push(d);
+                        const w = await searchWeRead(qSearch);
+                        if (w) candidates.push(w);
                     }
                     const g = await searchGoogleBooks(qSearch);
                     if (g) candidates.push(g);
@@ -1417,8 +1327,8 @@
                 }
                 if (isbn) {
                     if (preferCn) {
-                        const dIsbn = await lookupDoubanIsbn(isbn);
-                        if (dIsbn) candidates.push(dIsbn);
+                        const wIsbn = await lookupWeReadIsbn(isbn);
+                        if (wIsbn) candidates.push(wIsbn);
                     }
                     const byIsbn = await lookupOpenLibraryIsbn(isbn);
                     if (byIsbn) candidates.push(byIsbn);
@@ -1429,7 +1339,7 @@
                     meta = candidates[0];
                 }
                 if (!meta) {
-                    alert('未找到可用的书目信息。可尝试：与版权页一致的书名、填写 ISBN，或稍后再试（豆瓣/Google 可能限流）。');
+                    alert('未找到可用的书目信息。可尝试：与版权页一致的书名、填写 ISBN，或稍后再试（微信读书/Google 可能限流）。');
                     return;
                 }
                 applyBookMeta(meta);
